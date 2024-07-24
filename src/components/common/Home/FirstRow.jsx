@@ -3,7 +3,7 @@ import '../../../style.css'
 const FirstRow = () => {
   return (
     <>
-      <div className="first-row-container flex justify-between">
+      <div className="first-row-container flex justify-between overflow-hidden">
         <div className="left-side pl-20 mt-28">
           <h1 className="text-8xl">
             <span className="block font-reem-kufi text-gray-700">
@@ -36,6 +36,7 @@ const FirstRow = () => {
             className="w-82 h-66 rounded-lg"
           />
         </div>
+       
       </div>
     </>
   );

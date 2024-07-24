@@ -32,9 +32,14 @@ const CourseCard = () => {
             className="w-8 rounded-full"
           />
         </h2>
-        <p className="price text-gray-500 font-reem-kufi text-semibold pl-3">
+       
+       <p className="price text-gray-500 font-reem-kufi text-semibold pl-3">
           Navaneeth V
         </p>
+        <p className="review text-gray-500 text-sm  pl-12">
+            (4.3 Reviews)
+        </p>
+      
       </div>
       <hr className="my-1 border-gray-400" />
       <div className="pl-4 pr-4 pt-1 pb-2 flex items-center justify-between">

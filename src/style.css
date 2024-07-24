@@ -14,3 +14,18 @@
     animation: moveImage 2s ease-in-out infinite; /* 2 seconds for one complete cycle */
   }
   
+  .gradient-hover {
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .gradient-hover {
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .gradient-hover:hover {
+    color: rgb(43, 107, 226);
+    background-clip: text;
+    -webkit-background-clip: text;
+    background-image: linear-gradient(to right, #2563EB, #7C3AED);
+  }
+  
