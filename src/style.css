@@ -1,0 +1,16 @@
+@keyframes moveImage {
+    0% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(10px); /* Move to the right */
+    }
+    100% {
+      transform: translateX(0); /* Move back to the original position */
+    }
+  }
+  
+  .animate-move {
+    animation: moveImage 2s ease-in-out infinite; /* 2 seconds for one complete cycle */
+  }
+  
