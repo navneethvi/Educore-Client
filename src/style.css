@@ -29,3 +29,12 @@
     background-image: linear-gradient(to right, #2563EB, #7C3AED);
   }
   
+  .odd\:w-full > li:nth-child(3n+1),
+  .even\:w-full > li:nth-child(3n+2),
+  .even\:w-full > li:nth-child(3n+3) {
+   width: 100%;
+  }
+
+.even\:w-full > li:nth-child(2n) {
+  width: 100%;
+ }

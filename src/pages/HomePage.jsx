@@ -5,6 +5,7 @@ import SecondRow from "../components/common/Home/SecondRow";
 import ThirdRow from "../components/common/Home/ThirdRow";
 import Footer from "../components/common/Home/Footer";
 import FourthRow from "../components/common/Home/FourthRow";
+import FifthRow from "../components/common/Home/FifthRow";
 
 const HomePage = () => {
   return (
@@ -14,6 +15,7 @@ const HomePage = () => {
       <SecondRow />
       <ThirdRow />
       <FourthRow />
+      <FifthRow />
       <Footer />
     </div>
   );

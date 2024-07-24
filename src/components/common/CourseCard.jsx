@@ -4,7 +4,7 @@ import SchoolIcon from "@mui/icons-material/School";
 
 const CourseCard = () => {
   return (
-    <div className="bg-white border border-gray-300 rounded-lg shadow-lg overflow-hidden w-80 h-auto">
+    <div className="bg-white border border-gray-300 rounded-lg shadow-lg overflow-hidden w-80 h-auto cursor-pointer transform transition-transform duration-300 hover:scale-105">
       <div className="relative">
         <img
           src="/src/assets/home-page/course-thumb.png"
