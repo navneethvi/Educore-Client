@@ -1,4 +1,6 @@
-import '../../../style.css'
+import "../../../style.css";
+
+import { Link } from "react-router-dom";
 
 const FirstRow = () => {
   return (
@@ -21,12 +23,16 @@ const FirstRow = () => {
             embark on a tranformative quest for learning and personal growth.
           </p>
           <div className="flex mt-4 space-x-6">
-            <button className="bg-gradient-to-r from-blue-500 to-blue-800 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500">
-              START EDUCORE
-            </button>
+            <Link to={'/signup'}>
+              <button className="bg-gradient-to-r from-blue-500 to-blue-800 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500">
+                START EDUCORE
+              </button>
+            </Link>
+            <Link to={'/tutor/signup'}>
             <button className="bg-gradient-to-r from-blue-500 to-blue-800 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500">
               START TEACHING
             </button>
+            </Link>
           </div>
         </div>
         <div className="right-side animate-move">
@@ -36,7 +42,6 @@ const FirstRow = () => {
             className="w-82 h-66 rounded-lg"
           />
         </div>
-       
       </div>
     </>
   );
