@@ -20,7 +20,7 @@ const SideBar = () => {
 
   return (
     <div
-      className={`sidebar-container bg-neutral-950 text-white flex flex-col fixed top-0 left-0 bottom-0 transition-all ${
+      className={`sidebar-container bg-zinc-900 text-white flex flex-col fixed top-0 left-0 bottom-0 transition-all ${
         isCollapsed ? "w-16" : "w-60"
       }`}
       style={{
@@ -30,7 +30,7 @@ const SideBar = () => {
       <div className="flex items-center p-2">
         <button
           onClick={handleFoldClick}
-          className="bg-gray-900 text-white w-12 h-12 flex items-center justify-center rounded-full"
+          className="bg-zinc-700 text-white w-12 h-12 flex items-center justify-center rounded-full"
         >
           {isCollapsed ? <MenuIcon /> : <MenuOpenIcon />}
         </button>
