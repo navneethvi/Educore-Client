@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 // Common
 
 import HomePage from "./pages/HomePage";
@@ -41,6 +42,18 @@ function App() {
           <Route path="/tutor/signin" element={<TutorSignIn />} />
           <Route path="/tutor/signup" element={<TutorSignUp />} />
         </Routes>
+        <ToastContainer
+          position="top-right" // Position the toasts in the top-right corner
+          autoClose={5000} // Auto close after 5 seconds
+          hideProgressBar={false} // Show progress bar
+          newestOnTop={false} // Show newest toast on top
+          closeOnClick // Close on click
+          rtl={false} // Right-to-left text direction
+          pauseOnFocusLoss // Pause on window focus loss
+          draggable // Make draggable
+          pauseOnHover // Pause on hover
+          theme="light" // Theme for the toast
+        />
       </BrowserRouter>
     </>
   );
