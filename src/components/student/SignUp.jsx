@@ -171,10 +171,10 @@ const SignUp = () => {
           password: "",
           confirm_password: "",
         });
-      } catch (error) {
-        console.log(error.message);
+      } catch (err) {
+        toast.error(err.response?.data?.message || "An error occurred during sign-up");
         setIsLoading(false)
-        console.log("response ==>", error.response);
+        console.log("response ==>", err.response);
       }
     }
   };
