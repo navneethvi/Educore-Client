@@ -1,12 +1,13 @@
 /* eslint-disable react/no-unescaped-entities */
 
-import { useState } from "react";
-import axios from 'axios'
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; 
-import { BASE_URL } from "../../utils/configs";
 import { useNavigate } from "react-router-dom";
+import {useSelector, useDispatch} from 'react-redux'
+import { studentSignup } from "../../redux/students/studentActions";
+import { resetActions } from "../../redux/students/studentSlice";
 
 const SignUp = () => {
   const [name, setName] = useState("");
@@ -14,9 +15,10 @@ const SignUp = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirm_password] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { loading, success, error, message } = useSelector((state) => state.student);
 
   const [errors, setErrors] = useState({
     name: "",
@@ -25,6 +27,18 @@ const SignUp = () => {
     password: "",
     confirm_password: "",
   });
+
+  useEffect(() => {
+    if (success) {
+      toast.success(message);
+      dispatch(resetActions());
+      navigate('/verify-email', {state : {message : "OTP Sented to your email", email : email}});
+    }
+    if (error) {
+      toast.error(error);
+      dispatch(resetActions());
+    }
+  }, [success, error, message, dispatch, navigate]);
 
   const validateName = (value) => {
     if (value.length < 3 || value.length > 20) {
@@ -142,42 +156,10 @@ const SignUp = () => {
     }
 
     if (isValid) {
-      try {
-        console.log("Form submitted with:", {
-          name,
-          email,
-          phone,
-          password,
-          confirmPassword,
-        });
-
-        setIsLoading(true)
-
-        await axios.post(`${BASE_URL}/auth/signup`, {name, email, phone, password, confirmPassword, role: 'student'})
-
-        navigate('/verify-email', {state : {message : "OTP Sented to your email", email : email}})
-
-        setIsLoading(false)
-
-        setName("");
-        setEmail("");
-        setPhone("");
-        setPassword("");
-        setConfirm_password("");
-        setErrors({
-          name: "",
-          email: "",
-          phone: "",
-          password: "",
-          confirm_password: "",
-        });
-      } catch (err) {
-        toast.error(err.response?.data?.message || "An error occurred during sign-up");
-        setIsLoading(false)
-        console.log("response ==>", err.response);
-      }
+      dispatch(studentSignup({ name, email, phone, password, confirmPassword, role: "student" }));
     }
-  };
+    }
+  
 
   return (
     <>
@@ -293,21 +275,13 @@ const SignUp = () => {
               )}
             </div>
 
-            {!isLoading ? (
-              <button
+            <button
                 type="submit"
-                className="bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500 w-full"
+                className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
+                disabled={loading}
               >
-                Sign Up
+                {loading ? "Signing Up..." : "Sign Up"}
               </button>
-            ) : (
-              <button
-                type="submit"
-                className="bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500 w-full"
-              >
-                Loading...
-              </button>
-            )}
           </form>
 
           <Link to={"/signin"}>
