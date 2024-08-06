@@ -1,5 +1,8 @@
 import { Route, Routes } from "react-router-dom";
 
+import StudentProtected from "./StudentProtected";
+
+import StudentDash from "../components/student/StudentDash";
 import SignIn from "../components/student/SignIn";
 import SignUp from "../components/student/SignUp";
 import ForgotPass from "../components/student/ForgotPass";
@@ -16,6 +19,14 @@ const StudentRoutes = () => {
       <Route path="/reset-pass" element={<ResetPass />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/select-interests" element={<SelectInterests />} />
+      <Route
+        path="/dashboard"
+        element={
+          <StudentProtected>
+            <StudentDash />
+          </StudentProtected>
+        }
+      />
     </Routes>
   );
 };

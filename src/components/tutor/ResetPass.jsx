@@ -6,7 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
 import "sweetalert2/src/sweetalert2.scss";
 
-import { studentResetPass } from "../../redux/students/studentActions";
+import { tutorResetPass } from "../../redux/tutors/tutorActions";
 
 const ResetPass = () => {
   const [newPassword, setNewPassword] = useState("");
@@ -17,7 +17,7 @@ const ResetPass = () => {
   const dispatch = useDispatch();
 
   const { loading, success, error, message } = useSelector(
-    (state) => state.student
+    (state) => state.tutor
   );
 
   const { email, otp } = location.state;
@@ -38,7 +38,7 @@ const ResetPass = () => {
         showConfirmButton: false,
         timer: 1500,
       });
-      navigate("/signin", {
+      navigate("/tutor/signin", {
         state: { message: "Password Updated Successfully" },
       });
     } else if (error) {
@@ -62,13 +62,13 @@ const ResetPass = () => {
     }
 
     const data = {
-      email,
-      otp,
-      newPassword,
-      confirmNewPassword: reNewPassword,
-    };
-
-    dispatch(studentResetPass(data));
+        email,
+        otp,
+        newPassword,
+        confirmNewPassword: reNewPassword,
+      };
+   
+    dispatch(tutorResetPass(data))
   };
 
   return (

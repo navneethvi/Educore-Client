@@ -1,19 +1,37 @@
 /* eslint-disable react/no-unescaped-entities */
 import GoogleIcon from "@mui/icons-material/Google";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
+import { resetActions } from "../../redux/students/studentSlice";
+import { useDispatch, useSelector } from "react-redux";
 
-import { BASE_URL } from "../../utils/configs";
+import { studentSignin } from "../../redux/students/studentActions";
 
 const SignIn = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+
+  const {loading, error, message, success} = useSelector((state)=> state.student)
+
+  useEffect(()=>{
+    if(error){
+      toast.error(error);
+      dispatch(resetActions());
+    }
+    if(success){
+      toast.success(message);
+      dispatch(resetActions());
+      navigate("/dashboard", {
+        state: { message: "OTP Sented to your email", email: email },
+      });
+    }
+  })
 
   const handleSignIn = async () => {
     if (!validateEmail(email)) {
@@ -25,14 +43,15 @@ const SignIn = () => {
       return;
     }
 
-    try {
-      const response = await axios.post(`${BASE_URL}/auth/signin`, { email, password });
-      console.log('Sign-in successful', response.data);
-      navigate('/tutor')
-      toast.success("Sign-in successful");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "An error occurred during sign-in");
-    }
+    dispatch(studentSignin({email, password}))
+    // try {
+    //   const response = await axios.post(`${BASE_URL}/auth/signin`, { email, password });
+    //   console.log('Sign-in successful', response.data);
+    //   navigate('/dashboard')
+    //   toast.success("Sign-in successful");
+    // } catch (err) {
+    //   toast.error(err.response?.data?.message || "An error occurred during sign-in");
+    // }
   };
 
   const validateEmail = (email) => {
@@ -86,8 +105,8 @@ const SignIn = () => {
           Forgot password?
         </p>
        </Link>
-        <button className="bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500 w-full mb-4" onClick={handleSignIn}>
-          Sign In
+        <button className="bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500 w-full mb-4" onClick={handleSignIn} disabled={loading}>
+         {loading ? "Signing In..." : "Sign In"}
         </button>
         <button className="bg-gradient-to-r border-2 border-gray-400 h-12 text-gray-700 px-4 py-2 rounded-lg w-full flex items-center justify-center ">
           {" "}

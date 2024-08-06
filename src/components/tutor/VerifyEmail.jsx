@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useDispatch, useSelector } from "react-redux";
-import { studentVerifyEmail, studentResendOtp } from "../../redux/students/studentActions";
-import { resetActions } from "../../redux/students/studentSlice";
+import { tutorVerifyEmail, tutorResendOtp } from "../../redux/tutors/tutorActions";
+import { resetActions } from "../../redux/tutors/tutorSlice";
 
 const VerifyEmail = () => {
   const [otp, setOtp] = useState(["", "", "", ""]);
@@ -15,35 +15,30 @@ const VerifyEmail = () => {
   const dispatch = useDispatch();
   const email = location.state?.email;
 
-  const { loading, error, success, otpResendError, otpResendSuccess } = useSelector((state) => state.student);
-
+  const { loading, error, success, otpResendError, otpResendSuccess } =
+    useSelector((state) => state.tutor);
 
   useEffect(() => {
     if (location.state?.message) {
-      toast.success(location.state.message);  
+      toast.success(location.state.message);
     }
   }, [location.state]);
 
   useEffect(() => {
-
-    console.log('Loading:', loading);
-    console.log('Success:', success);
-    console.log('Error:', error);
-    
     if (error) {
-      toast.error(error);
-      dispatch(resetActions())
+      toast.error(error || "Error occurred.");
+      dispatch(resetActions());
     } else if (success) {
-      dispatch(resetActions())
-      navigate("/select-interests", {
+      dispatch(resetActions());
+      navigate("/tutor/dashboard", {
         state: { message: "Student Verified Successfully", email: email },
       });
     }
-  }, [error, success, navigate, email]);
+  }, [error, success, navigate, email, dispatch]);
 
   useEffect(() => {
     if (otpResendError) {
-      toast.error(otpResendError);
+      toast.error(otpResendError || "Failed to resend OTP.");
     } else if (otpResendSuccess) {
       toast.success("OTP has been resent successfully.");
       startNewTimer();
@@ -92,7 +87,7 @@ const VerifyEmail = () => {
         return () => clearInterval(countdown);
       }
     } else {
-      startNewTimer(); 
+      startNewTimer();
     }
   }, []);
 
@@ -120,14 +115,13 @@ const VerifyEmail = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const enteredOtp = otp.join("");
-    dispatch(studentVerifyEmail({ otp: enteredOtp, email: email }));
+    dispatch(tutorVerifyEmail({ otp: enteredOtp, email: email }));
   };
 
   const handleResendOtp = (e) => {
     e.preventDefault();
-    dispatch(studentResendOtp({ email: email }));
+    dispatch(tutorResendOtp({ email: email }));
   };
 
   return (
@@ -168,7 +162,9 @@ const VerifyEmail = () => {
 
             <button
               type="submit"
-              className={`bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500 w-full mb-2 ${loading ? 'cursor-not-allowed opacity-50' : ''}`}
+              className={`bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500 w-full mb-2 ${
+                loading ? "cursor-not-allowed opacity-50" : ""
+              }`}
               disabled={loading}
             >
               {loading ? "Submitting..." : "Submit"}

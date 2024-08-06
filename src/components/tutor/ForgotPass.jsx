@@ -4,11 +4,11 @@ import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import { useDispatch, useSelector } from "react-redux";
-import { resetActions } from "../../redux/students/studentSlice";
+import { resetActions } from "../../redux/tutors/tutorSlice";
 import {
-  forgotStudentPass,
-  verifyStudentAccount,
-} from "../../redux/students/studentActions";
+  forgotTutorPass,
+  verifyTutorAccount,
+} from "../../redux/tutors/tutorActions";
 
 const ForgotPass = () => {
   const [otp, setOtp] = useState(["", "", "", ""]);
@@ -23,7 +23,7 @@ const ForgotPass = () => {
     otpVerifyLoading,
     otpVerifySuccess,
     otpVerifyError,
-  } = useSelector((state) => state.student);
+  } = useSelector((state) => state.tutor);
 
   useEffect(() => {
     if (success) {
@@ -75,19 +75,19 @@ const ForgotPass = () => {
 
     console.log("Email before dispatch :::", email);
 
-    dispatch(forgotStudentPass({ email }));
+    dispatch(forgotTutorPass({ email }));
   };
 
   const handleOtpSubmit = () => {
     console.log("im hereeeeeeeeeeeeeeeee");
-    
+
     const otpCode = otp.join("");
-    dispatch(verifyStudentAccount({ email, otp: otpCode })).then((result) => {
+    dispatch(verifyTutorAccount({ email, otp: otpCode })).then((result) => {
       if (
-        result.type === "verifyStudentAccount/fulfilled" &&
+        result.type === "verifyTutorAccount/fulfilled" &&
         result.payload.isValid
       ) {
-        navigate("/reset-pass", {
+        navigate("/tutor/reset-pass", {
           state: {
             message: "Email Verified Successfully",
             email,

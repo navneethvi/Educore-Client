@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; 
+import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
-import {useSelector, useDispatch} from 'react-redux'
+import { useSelector, useDispatch } from "react-redux";
 import { studentSignup } from "../../redux/students/studentActions";
 import { resetActions } from "../../redux/students/studentSlice";
 
@@ -16,9 +16,11 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirm_password] = useState("");
 
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
-  const { loading, success, error, message } = useSelector((state) => state.student);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading, success, error, message } = useSelector(
+    (state) => state.student
+  );
 
   const [errors, setErrors] = useState({
     name: "",
@@ -32,7 +34,9 @@ const SignUp = () => {
     if (success) {
       toast.success(message);
       dispatch(resetActions());
-      navigate('/verify-email', {state : {message : "OTP Sented to your email", email : email}});
+      navigate("/verify-email", {
+        state: { message: "OTP Sented to your email", email: email },
+      });
     }
     if (error) {
       toast.error(error);
@@ -156,10 +160,18 @@ const SignUp = () => {
     }
 
     if (isValid) {
-      dispatch(studentSignup({ name, email, phone, password, confirmPassword, role: "student" }));
+      dispatch(
+        studentSignup({
+          name,
+          email,
+          phone,
+          password,
+          confirmPassword,
+          role: "student",
+        })
+      );
     }
-    }
-  
+  };
 
   return (
     <>
@@ -276,12 +288,12 @@ const SignUp = () => {
             </div>
 
             <button
-                type="submit"
-                className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
-                disabled={loading}
-              >
-                {loading ? "Signing Up..." : "Sign Up"}
-              </button>
+              type="submit"
+              className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
+              disabled={loading}
+            >
+              {loading ? "Signing Up..." : "Sign Up"}
+            </button>
           </form>
 
           <Link to={"/signin"}>

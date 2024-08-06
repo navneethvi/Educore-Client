@@ -1,24 +1,37 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import InterestButton from "../common/InterestButton";
-import axios from "axios";
-import { BASE_URL } from "../../utils/configs";
 import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; 
+import "react-toastify/dist/ReactToastify.css";
+import { setStudentInterests } from "../../redux/students/studentActions";
+
 
 const SelectInterests = () => {
   const [selectedRequirements, setSelectedRequirements] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const location = useLocation()
-  const navigate = useNavigate()
-  const email = location.state.email
+  const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const email = location.state.email;
   console.log(selectedRequirements);
 
-  useEffect(()=>{
-    if(location.state.message){
-      toast.success(location.state.message)
+  const { loading, success, error } = useSelector((state) => state.student);
+
+  useEffect(() => {
+    if (location.state.message) {
+      toast.success(location.state.message);
     }
-  }, [location.state])
+  }, [location.state]);
+
+  useEffect(() => {
+    if (success) {
+      toast.success("Interests updated successfully!");
+      navigate("/dashboard");
+    }
+    if (error) {
+      toast.error(error);
+    }
+  }, [success, error, navigate]);
 
   const toggleRequirement = (requirement) => {
     if (selectedRequirements.includes(requirement)) {
@@ -48,18 +61,14 @@ const SelectInterests = () => {
       return;
     }
 
-    setIsLoading(true)
-    navigate('/tutor')
-    try {
-      await axios.post(`${BASE_URL}/auth/set-interests`, {interests : selectedRequirements, email : email})
-    } catch (error) {
-      console.log(error.message);
-    }
+    dispatch(
+      setStudentInterests({ interests: selectedRequirements, email: email })
+    );
   };
 
   return (
     <>
-    <ToastContainer/>
+      <ToastContainer />
       <div className="select-interests-container p-20 flex justify-between items-center">
         <div className="left">
           <div className="heading mb-8">
@@ -83,22 +92,18 @@ const SelectInterests = () => {
               ))}
             </ul>
             <div className="flex justify-center mt-10">
-              {!isLoading ? (
-                <button
-                  type="submit"
-                  onClick={handleAddInterests}
-                  className="bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500 w-40"
-                >
-                  Sign Up
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  className="bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500 w-full"
-                >
-                  Loading...
-                </button>
-              )}
+              <button
+                type="submit"
+                onClick={handleAddInterests}
+                className={`bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg ${
+                  loading
+                    ? "cursor-not-allowed opacity-50"
+                    : "hover:from-blue-800 hover:to-blue-500"
+                } w-40`}
+                disabled={loading}
+              >
+                {loading ? "Loading..." : "Sign Up"}
+              </button>
             </div>
           </div>
         </div>
