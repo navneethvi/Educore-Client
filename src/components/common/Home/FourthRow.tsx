@@ -1,6 +1,7 @@
 import ReviewCard from "../ReviewCard";
+import React from "react";
 
-const FourthRow = () => {
+const FourthRow: React.FC = () => {
   return (
     <>
       <div className="review-card-container p-20">

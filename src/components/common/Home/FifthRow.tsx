@@ -1,4 +1,6 @@
-const FifthRow = () => {
+import React from "react";
+
+const FifthRow: React.FC = () => {
   return (
     <>
       <div className="about-us p-20 flex items-center justify-between">

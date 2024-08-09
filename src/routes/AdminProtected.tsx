@@ -11,14 +11,15 @@ interface AdminProtectedProps {
 const AdminProtected: React.FC<AdminProtectedProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const adminToken = useSelector((state: RootState) => state.admin);
+  
+  const {adminToken} = useSelector((state: RootState) => state.admin);
 
   useEffect(() => {
     if (!adminToken) {
       navigate("/admin/signin", { replace: true, state: location.state });
       return;
     }
-  }, [adminToken, navigate, location.state]);
+  }, [adminToken]);
 
   if (adminToken) {
     return children;

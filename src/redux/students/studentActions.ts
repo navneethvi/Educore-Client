@@ -28,11 +28,11 @@ export const studentSignup = createAsyncThunk<
   any,
   StudentSignupData,
   { rejectValue: string }
->("student/signup", async (data, thunkAPI) => {
+>("studentSignup", async (data, thunkAPI) => {
   try {
     const response = await studentSignupService(data);
     console.log("in StudentSignup===>", response);
-    return response.data;
+    return response;
   } catch (error: any) {
     return handleThunkError(error, thunkAPI);
   }
@@ -42,7 +42,7 @@ export const studentVerifyEmail = createAsyncThunk<
   any,
   StudentVerifyOtp,
   { rejectValue: string }
->("student/verifyEmail", async (data, thunkAPI) => {
+>("studentVerifyEmail", async (data, thunkAPI) => {
   try {
     const response = await studentVerifyEmailService(data);
     console.log("in StudentVerifyEmail===>", response);
@@ -56,7 +56,7 @@ export const studentResendOtp = createAsyncThunk<
   any,
   StudentResendOtp,
   { rejectValue: string }
->("student/resendOtp", async (data, thunkAPI) => {
+>("studentResendOtp", async (data, thunkAPI) => {
   try {
     const response = await studentResendOtpService(data);
     console.log("in StudentResendOtp===>", response);
@@ -70,11 +70,11 @@ export const setStudentInterests = createAsyncThunk<
   any,
   SetStudentInterestsPayload,
   { rejectValue: string }
->("student/setInterests", async (data, thunkAPI) => {
+>("setStudentInterests", async (data, thunkAPI) => {
   try {
     const response = await setStudentInterestsService(data);
     console.log("in StudentSetInterests===>", response);
-    return response.data;
+    return response;
   } catch (error: any) {
     return handleThunkError(error, thunkAPI);
   }
@@ -84,7 +84,7 @@ export const forgotStudentPass = createAsyncThunk<
   any,
   { email: string },
   { rejectValue: string }
->("student/forgotPassword", async (data, thunkAPI) => {
+>("forgotStudentPass", async (data, thunkAPI) => {
   try {
     const response = await forgotStudentPassService(data);
     console.log("in StudentForgotPass===>", response);
@@ -98,11 +98,11 @@ export const verifyStudentAccount = createAsyncThunk<
   any,
   { email: string; otp: string },
   { rejectValue: string }
->("student/verifyAccount", async (data, thunkAPI) => {
+>("verifyStudentAccount", async (data, thunkAPI) => {
   try {
     const response = await verifyStudentAccountService(data);
     console.log("in StudentVerifyAcc===>", response);
-    return response.data;
+    return response
   } catch (error: any) {
     return handleThunkError(error, thunkAPI);
   }
@@ -112,11 +112,11 @@ export const studentSignin = createAsyncThunk<
   any,
   SigninData,
   { rejectValue: string }
->("student/signin", async (data, thunkAPI) => {
+>("studentSignin", async (data, thunkAPI) => {
   try {
     const response = await studentSigninService(data);
     console.log("in StudentSignin===>", response);
-    return response.data;
+    return response;
   } catch (error: any) {
     return handleThunkError(error, thunkAPI);
   }
@@ -126,7 +126,7 @@ export const studentResetPass = createAsyncThunk<
   any,
   StudentResetPassData,
   { rejectValue: string }
->("student/resetPassword", async (data, thunkAPI) => {
+>("studentResetPass", async (data, thunkAPI) => {
   try {
     const response = await studentResetPassService(data);
     console.log("in StudentResetPass===>", response);

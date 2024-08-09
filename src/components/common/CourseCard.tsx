@@ -1,8 +1,9 @@
 import ClassIcon from "@mui/icons-material/Class";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import SchoolIcon from "@mui/icons-material/School";
+import React from "react";
 
-const CourseCard = () => {
+const CourseCard: React.FC = () => {
   return (
     <div className="bg-white border border-gray-300 rounded-lg shadow-lg overflow-hidden w-80 h-auto cursor-pointer transform transition-transform duration-300 hover:scale-105">
       <div className="relative">

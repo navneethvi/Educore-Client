@@ -1,6 +1,6 @@
-// import React from 'react'
+import React from 'react'
 
-const Body = () => {
+const Body: React.FC = () => {
   return (
     <div>
       

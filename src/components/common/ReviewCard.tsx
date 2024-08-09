@@ -1,6 +1,7 @@
 import StarBorderIcon from "@mui/icons-material/StarBorder";
+import React from "react";
 
-const ReviewCard = () => {
+const ReviewCard: React.FC = () => {
   return (
     <>
       <div className="review-cards border-2 shadow-sm h-auto rounded-lg text-center p-4 hover:shadow-lg cursor-pointer transform transition-transform duration-300 hover:scale-105">

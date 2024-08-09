@@ -11,14 +11,14 @@ interface StudentProtectedProps {
 const StudentProtected : React.FC<StudentProtectedProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const  studentToken  = useSelector((state: RootState) => state.student);
+  const  {studentToken}  = useSelector((state: RootState) => state.student);
 
   useEffect(() => {
     if (!studentToken) {
       navigate("/signin", { replace: true, state: location.state });
       return;
     }
-  }, [studentToken, navigate, location.state]);
+  }, [studentToken]);
 
   if (studentToken) {
     return children;

@@ -6,16 +6,23 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { setStudentInterests } from "../../redux/students/studentActions";
 
+import { AppDispatch, RootState } from "../../store/store";
 
-const SelectInterests = () => {
-  const [selectedRequirements, setSelectedRequirements] = useState([]);
+interface LocationState {
+  email: string;
+  message?: string;
+}
+
+
+const SelectInterests: React.FC = () => {
+  const [selectedRequirements, setSelectedRequirements] = useState<string[]>([])
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch : AppDispatch = useDispatch();
   const email = location.state.email;
-  console.log(selectedRequirements);
+  console.log(selectedRequirements, email);
 
-  const { loading, success, error } = useSelector((state) => state.student);
+  const { loading, success, error } = useSelector((state: RootState) => state.student);
 
   useEffect(() => {
     if (location.state.message) {
@@ -33,7 +40,7 @@ const SelectInterests = () => {
     }
   }, [success, error, navigate]);
 
-  const toggleRequirement = (requirement) => {
+  const toggleRequirement = (requirement: string) => {
     if (selectedRequirements.includes(requirement)) {
       setSelectedRequirements((prev) =>
         prev.filter((item) => item !== requirement)
@@ -43,7 +50,7 @@ const SelectInterests = () => {
     }
   };
 
-  const isSelected = (requirement) =>
+  const isSelected = (requirement: string) =>
     selectedRequirements.includes(requirement);
 
   const interests = [

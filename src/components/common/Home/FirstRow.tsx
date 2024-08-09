@@ -1,8 +1,10 @@
 import "../../../style.css";
 
+import React from "react";
+
 import { Link } from "react-router-dom";
 
-const FirstRow = () => {
+const FirstRow: React.FC = () => {
   return (
     <>
       <div className="first-row-container flex justify-between overflow-hidden">

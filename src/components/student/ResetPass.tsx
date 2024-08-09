@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast, ToastContainer } from "react-toastify";
@@ -6,21 +6,29 @@ import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
 import "sweetalert2/src/sweetalert2.scss";
 
+import { AppDispatch, RootState } from "../../store/store";
+
 import { studentResetPass } from "../../redux/students/studentActions";
 
-const ResetPass = () => {
+interface LocationState {
+  email: string;
+  otp: string;
+  message?: string;
+}
+
+const ResetPass: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
   const [reNewPassword, setreNewPassword] = useState("");
 
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch : AppDispatch = useDispatch();
 
   const { loading, success, error, message } = useSelector(
-    (state) => state.student
+    (state: RootState) => state.student
   );
 
-  const { email, otp } = location.state;
+  const { email, otp } = location.state as LocationState;
   console.log("location.state===>", location.state);
 
   useEffect(() => {

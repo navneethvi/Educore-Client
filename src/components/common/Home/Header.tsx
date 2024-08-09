@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
+import React from "react";
 
-const Header = () => {
+const Header: React.FC = () => {
   return (
     <>
       <div className="header-container flex justify-between items-center pl-10 pr-10 pt-4 font-reem-kufi">

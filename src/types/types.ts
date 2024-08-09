@@ -23,6 +23,7 @@ export interface StudentSignupData {
   phone: number;
   password: string;
   confirmPassword: string;
+  role: string;
 }
 
 export interface StudentVerifyOtp {
@@ -58,6 +59,7 @@ export interface TutorSignupData {
   phone: number;
   password: string;
   confirmPassword: string;
+  role: string;
 }
 
 export interface TutorVerifyOtp {
@@ -65,10 +67,9 @@ export interface TutorVerifyOtp {
   otp: string;
 }
 
-
 export interface TutorResetPassData {
-    email: string;
-    otp: string;
-    newPassword: string;
-    confirmNewPassword: string;
-  }
+  email: string;
+  otp: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}

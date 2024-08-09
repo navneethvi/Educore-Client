@@ -1,21 +1,21 @@
 /* eslint-disable react/no-unescaped-entities */
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { resetActions } from "../../redux/admin/adminSlice";
 
-import { RootState } from "../../store/store";
+import { RootState, AppDispatch } from "../../store/store";
 
 import { adminSignin } from "../../redux/admin/adminActions";
 
-const AdminSignIn = () => {
+const AdminSignIn: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch: AppDispatch = useDispatch();
 
   const { loading, error, message, success } = useSelector(
     (state: RootState) => state.admin
@@ -35,12 +35,12 @@ const AdminSignIn = () => {
     }
   });
 
-  const validateEmail = (email) => {
+  const validateEmail = (email: string): boolean => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(String(email).toLowerCase());
   };
 
-  const handleSignIn = async () => {
+  const handleSignIn = async (): Promise<void> => {
     if (!validateEmail(email)) {
       toast.error("Invalid email format");
       return;

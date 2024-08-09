@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, KeyboardEvent, FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -6,16 +6,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { studentVerifyEmail, studentResendOtp } from "../../redux/students/studentActions";
 import { resetActions } from "../../redux/students/studentSlice";
 
+import { RootState, AppDispatch } from "../../store/store";
+
 const VerifyEmail = () => {
-  const [otp, setOtp] = useState(["", "", "", ""]);
-  const [timer, setTimer] = useState(60);
+  const [otp, setOtp] = useState<string[]>(["", "", "", ""]);
+  const [timer, setTimer] = useState<number>(60);
 
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const email = location.state?.email;
+  const dispatch: AppDispatch = useDispatch();
+  const email = location.state?.email as string;
 
-  const { loading, error, success, otpResendError, otpResendSuccess } = useSelector((state) => state.student);
+  const { loading, error, success, otpResendError, otpResendSuccess } = useSelector((state : RootState) => state.student);
 
 
   useEffect(() => {
@@ -52,7 +54,7 @@ const VerifyEmail = () => {
 
   const startNewTimer = () => {
     const endTime = Date.now() + 60000; // 1 minute
-    localStorage.setItem("otpEndTime", endTime);
+    localStorage.setItem("otpEndTime", endTime.toString());
     setTimer(60);
 
     const countdown = setInterval(() => {
@@ -96,7 +98,7 @@ const VerifyEmail = () => {
     }
   }, []);
 
-  const handleChange = (element, index) => {
+  const handleChange = (element: HTMLInputElement, index: number) => {
     if (!element.value.match(/^[0-9]*$/)) return;
 
     const newOtp = [...otp];
@@ -104,28 +106,28 @@ const VerifyEmail = () => {
     setOtp(newOtp);
 
     if (element.nextSibling && element.value) {
-      element.nextSibling.focus();
+      (element.nextSibling as HTMLInputElement).focus();
     }
   };
 
-  const handleKeyDown = (event, index) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>, index: number) => {
     if (
       event.key === "Backspace" &&
       !otp[index] &&
-      event.target.previousSibling
+      event.currentTarget.previousSibling
     ) {
-      event.target.previousSibling.focus();
+      (event.currentTarget.previousSibling as HTMLInputElement).focus();
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
     const enteredOtp = otp.join("");
     dispatch(studentVerifyEmail({ otp: enteredOtp, email: email }));
   };
 
-  const handleResendOtp = (e) => {
+  const handleResendOtp = (e: FormEvent) => {
     e.preventDefault();
     dispatch(studentResendOtp({ email: email }));
   };
@@ -156,7 +158,7 @@ const VerifyEmail = () => {
                   <input
                     key={index}
                     type="text"
-                    maxLength="1"
+                    maxLength={1}
                     value={otp[index]}
                     onChange={(e) => handleChange(e.target, index)}
                     onKeyDown={(e) => handleKeyDown(e, index)}

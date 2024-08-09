@@ -1,20 +1,31 @@
 /* eslint-disable react/no-unescaped-entities */
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch } from "../../store/store";
 import { resetActions } from "../../redux/students/studentSlice";
 import {
   forgotStudentPass,
   verifyStudentAccount,
 } from "../../redux/students/studentActions";
+import { RootState } from "../../store/store";
 
-const ForgotPass = () => {
+interface State {
+  loading: boolean;
+  success: boolean;
+  error: string | null;
+  otpVerifyLoading: boolean;
+  otpVerifySuccess: boolean;
+  otpVerifyError: string | null;
+}
+
+const ForgotPass: React.FC = () => {
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch : AppDispatch = useDispatch();
 
   const {
     loading,
@@ -23,7 +34,7 @@ const ForgotPass = () => {
     otpVerifyLoading,
     otpVerifySuccess,
     otpVerifyError,
-  } = useSelector((state) => state.student);
+  } : State = useSelector((state: RootState) => state.student);
 
   useEffect(() => {
     if (success) {
@@ -40,7 +51,7 @@ const ForgotPass = () => {
     }
   }, [otpVerifySuccess, otpVerifyError]);
 
-  const handleChange = (element, index) => {
+  const handleChange = (element: HTMLInputElement, index: number) => {
     if (!element.value.match(/^[0-9]*$/)) return;
 
     const newOtp = [...otp];
@@ -48,21 +59,21 @@ const ForgotPass = () => {
     setOtp(newOtp);
 
     if (element.nextSibling && element.value) {
-      element.nextSibling.focus();
+      (element.nextSibling as HTMLInputElement).focus();
     }
   };
 
-  const handleKeyDown = (event, index) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     if (
       event.key === "Backspace" &&
       !otp[index] &&
-      event.target.previousSibling
+      event.currentTarget.previousSibling
     ) {
-      event.target.previousSibling.focus();
+      (event.currentTarget.previousSibling as HTMLInputElement).focus();
     }
   };
 
-  const validateEmail = (email) => {
+  const validateEmail = (email: string): boolean => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(String(email).toLowerCase());
   };
@@ -83,10 +94,14 @@ const ForgotPass = () => {
     
     const otpCode = otp.join("");
     dispatch(verifyStudentAccount({ email, otp: otpCode })).then((result) => {
+      console.log(result.payload.isValid);
+      console.log(result.type === "verifyStudentAccount/fulfilled");
+      
       if (
         result.type === "verifyStudentAccount/fulfilled" &&
         result.payload.isValid
-      ) {
+      )  {
+        console.log("hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
         navigate("/reset-pass", {
           state: {
             message: "Email Verified Successfully",
@@ -153,9 +168,9 @@ const ForgotPass = () => {
               <input
                 key={index}
                 type="text"
-                maxLength="1"
+                maxLength={1}
                 value={otp[index]}
-                onChange={(e) => handleChange(e.target, index)}
+                onChange={(e) => handleChange(e.target as HTMLInputElement, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 className="w-full h-12 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi text-center text-xl focus:ring-blue-500 focus:border-blue-500 mb-6"
               />

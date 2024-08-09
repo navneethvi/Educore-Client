@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import React, { useState } from "react";
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
@@ -11,7 +11,7 @@ import AddCardIcon from "@mui/icons-material/AddCard";
 import MenuIcon from "@mui/icons-material/Menu";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 
-const SideBar = () => {
+const SideBar: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleFoldClick = () => {

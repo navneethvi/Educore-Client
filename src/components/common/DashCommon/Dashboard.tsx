@@ -1,9 +1,9 @@
-// import React from 'react'
+import React from 'react'
 
 import SideBar from "./SideBar"
 import Body from './Body.jsx'
 
-const Dashboard = () => {
+const Dashboard: React.FC = () => {
   return (
     
       <div className="dashboard-container flex">

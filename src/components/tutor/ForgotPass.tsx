@@ -1,20 +1,24 @@
 /* eslint-disable react/no-unescaped-entities */
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, KeyboardEvent } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import { useDispatch, useSelector } from "react-redux";
 import { resetActions } from "../../redux/tutors/tutorSlice";
+import { RootState, AppDispatch } from "../../store/store";
+
 import {
   forgotTutorPass,
   verifyTutorAccount,
 } from "../../redux/tutors/tutorActions";
 
-const ForgotPass = () => {
+
+
+const ForgotPass: React.FC = () => {
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch : AppDispatch = useDispatch();
 
   const {
     loading,
@@ -23,7 +27,7 @@ const ForgotPass = () => {
     otpVerifyLoading,
     otpVerifySuccess,
     otpVerifyError,
-  } = useSelector((state) => state.tutor);
+  } = useSelector((state: RootState) => state.tutor);
 
   useEffect(() => {
     if (success) {
@@ -40,7 +44,7 @@ const ForgotPass = () => {
     }
   }, [otpVerifySuccess, otpVerifyError]);
 
-  const handleChange = (element, index) => {
+  const handleChange = (element : HTMLInputElement, index : number) => {
     if (!element.value.match(/^[0-9]*$/)) return;
 
     const newOtp = [...otp];
@@ -48,21 +52,19 @@ const ForgotPass = () => {
     setOtp(newOtp);
 
     if (element.nextSibling && element.value) {
-      element.nextSibling.focus();
-    }
+      (element.nextSibling as HTMLInputElement).focus();    }
   };
 
-  const handleKeyDown = (event, index) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>, index: number) => {
     if (
       event.key === "Backspace" &&
       !otp[index] &&
-      event.target.previousSibling
+      event.currentTarget.previousSibling
     ) {
-      event.target.previousSibling.focus();
-    }
+      (event.currentTarget.previousSibling as HTMLInputElement).focus();    }
   };
 
-  const validateEmail = (email) => {
+  const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(String(email).toLowerCase());
   };
@@ -72,6 +74,7 @@ const ForgotPass = () => {
       toast.error("Invalid email format");
       return;
     }
+
 
     console.log("Email before dispatch :::", email);
 
@@ -153,7 +156,7 @@ const ForgotPass = () => {
               <input
                 key={index}
                 type="text"
-                maxLength="1"
+                maxLength={1}
                 value={otp[index]}
                 onChange={(e) => handleChange(e.target, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}

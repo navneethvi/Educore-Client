@@ -1,4 +1,4 @@
-// import React from 'react'
+import React from 'react'
 import Header from "../components/common/Home/Header";
 import FirstRow from "../components/common/Home/FirstRow";
 import SecondRow from "../components/common/Home/SecondRow";
@@ -7,7 +7,7 @@ import Footer from "../components/common/Home/Footer";
 import FourthRow from "../components/common/Home/FourthRow";
 import FifthRow from "../components/common/Home/FifthRow";
 
-const HomePage = () => {
+const HomePage: React.FC = () => {
   return (
     <div>
       <Header />

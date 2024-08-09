@@ -3,7 +3,9 @@ import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import XIcon from "@mui/icons-material/X";
 
-const Footer = () => {
+import React from "react";
+
+const Footer: React.FC = () => {
   return (
     <>
       <div className="footer-container p-20 flex justify-between items-start">
@@ -16,7 +18,7 @@ const Footer = () => {
             and engage in the digital learning environment
           </p>
           <div className="socials flex space-x-4 mt-5">
-            <InstagramIcon className="text-gray-400 gradient-hover cursor-pointer cursor-pointer" />
+            <InstagramIcon className="text-gray-400 gradient-hover cursor-pointer" />
             <LinkedInIcon className="text-gray-400 gradient-hover cursor-pointer" />
             <FacebookIcon className="text-gray-400 gradient-hover cursor-pointer" />
             <XIcon className="text-gray-400 gradient-hover cursor-pointer" />

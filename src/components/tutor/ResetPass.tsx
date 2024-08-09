@@ -6,6 +6,8 @@ import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
 import "sweetalert2/src/sweetalert2.scss";
 
+import { RootState, AppDispatch } from "../../store/store";
+
 import { tutorResetPass } from "../../redux/tutors/tutorActions";
 
 const ResetPass = () => {
@@ -14,10 +16,10 @@ const ResetPass = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch : AppDispatch = useDispatch();
 
   const { loading, success, error, message } = useSelector(
-    (state) => state.tutor
+    (state: RootState) => state.tutor
   );
 
   const { email, otp } = location.state;

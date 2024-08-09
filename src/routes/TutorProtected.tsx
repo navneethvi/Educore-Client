@@ -1,13 +1,20 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import React, { useEffect, ReactNode } from "react";
 import { useSelector } from "react-redux";
+import { RootState } from "../store/store";
 
-// eslint-disable-next-line react/prop-types
-const TutorProtected = ({ children }) => {
+
+
+interface TutorProtectedProps {
+  children: ReactNode;
+}
+
+
+const TutorProtected: React.FC<TutorProtectedProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const {tutorToken} = useSelector((state) => state.tutor);
+  const {tutorToken} = useSelector((state: RootState) => state.tutor);
 
   useEffect(() => {
     if (!tutorToken) {
@@ -24,5 +31,3 @@ const TutorProtected = ({ children }) => {
 };
 
 export default TutorProtected;
-[p'"
-  ]

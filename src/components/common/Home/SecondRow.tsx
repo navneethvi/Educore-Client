@@ -1,6 +1,7 @@
 import CourseCard from "../CourseCard";
+import React from "react";
 
-const SecondRow = () => {
+const SecondRow: React.FC = () => {
   return (
     <>
       <div className="second-row-container p-20">

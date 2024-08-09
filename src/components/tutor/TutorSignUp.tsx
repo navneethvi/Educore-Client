@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useFormik } from "formik";
+import { useFormik, FormikHelpers } from "formik";
 import * as Yup from "yup";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -8,19 +8,30 @@ import { useDispatch, useSelector } from "react-redux";
 import { tutorSignup } from "../../redux/tutors/tutorActions";
 import { resetActions } from "../../redux/tutors/tutorSlice";
 
-const TutorSignUp = () => {
+import { RootState, AppDispatch } from "../../store/store";
+
+interface FormValues {
+  name: string;
+  email: string;
+  phone: number;
+  password: string;
+  confirmPassword: string;
+  role: string;
+}
+
+const TutorSignUp: React.FC = () => {
   const [email, setEmail] = useState("")
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { loading, success, error, message } = useSelector((state) => state.tutor);
+  const dispatch: AppDispatch = useDispatch();
+  const { loading, success, error, message } = useSelector((state: RootState) => state.tutor);
 
   
   
-  const formik = useFormik({
+  const formik = useFormik<FormValues>({
     initialValues: {
       name: "",
       email: "",
-      phone: "",
+      phone: 0,
       password: "",
       confirmPassword: "",
       role: "tutor",
@@ -34,18 +45,25 @@ const TutorSignUp = () => {
         .email("Invalid email address")
         .required("Email is required"),
       phone: Yup.string()
-        .matches(/^[6-9]\d{9}$/, "Please enter a valid phone number")
-        .required("Phone number is required"),
+        .matches(/^[6-9]\d{9}$/, "Please enter a valid phone number.")
+        .required("Phone number is required."),
       password: Yup.string()
         .min(8, "Password must be at least 8 characters long")
         .required("Password is required"),
       confirmPassword: Yup.string()
-        .oneOf([Yup.ref("password"), null], "Passwords must match")
+        .oneOf([Yup.ref("password")], "Passwords must match")
         .required("Confirm password is required"),
     }),
-    onSubmit: (values) => {
+    onSubmit: (values: FormValues, formikHelpers: FormikHelpers<FormValues>) => {
       setEmail(values.email);
-      dispatch(tutorSignup(values));
+      dispatch(tutorSignup({
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        password: values.password,
+        confirmPassword: values.confirmPassword,
+        role: "tutor",
+      }));
     },
   });
   
@@ -108,9 +126,8 @@ const TutorSignUp = () => {
               <input
                 type="email"
                 id="email"
-                value={email}
-                onChange={(e)=>setEmail(e.target.value)}
-                {...formik.getFieldProps("email")}
+                value={formik.values.email}
+                onChange={formik.handleChange}
                 className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
               />
               {formik.touched.email && formik.errors.email ? (
@@ -199,13 +216,13 @@ const TutorSignUp = () => {
         <div className="right mt-6">
           <img
             src="/src/assets/signup.png"
-            alt="Description of the image"
+            alt="Sign up illustration"
             className="w-82 object-center rounded-lg"
           />
         </div>
       </div>
     </>
   );
-};
+}
 
 export default TutorSignUp;

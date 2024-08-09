@@ -1,6 +1,8 @@
 import CategoryCard from "../CategoryCard";
 
-const ThirdRow = () => {
+import React from "react";
+
+const ThirdRow: React.FC = () => {
   return (
     <div className="third-row-container pl-20 pr-20 pb-10">
       <h1 className="text-4xl font-reem-kufi text-gray-600">
