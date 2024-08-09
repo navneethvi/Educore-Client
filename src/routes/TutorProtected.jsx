@@ -24,3 +24,5 @@ const TutorProtected = ({ children }) => {
 };
 
 export default TutorProtected;
+[p'"
+  ]

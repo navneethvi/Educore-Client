@@ -1,19 +1,24 @@
-import { useEffect } from "react";
+import React, { useEffect, ReactNode } from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
+import { RootState } from "../store/store";
 
-// eslint-disable-next-line react/prop-types
-const StudentProtected = ({ children }) => {
+
+interface StudentProtectedProps {
+  children: ReactNode;
+}
+
+const StudentProtected : React.FC<StudentProtectedProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { studentToken } = useSelector((state) => state.student);
+  const  studentToken  = useSelector((state: RootState) => state.student);
 
   useEffect(() => {
     if (!studentToken) {
       navigate("/signin", { replace: true, state: location.state });
       return;
     }
-  }, [studentToken]);
+  }, [studentToken, navigate, location.state]);
 
   if (studentToken) {
     return children;

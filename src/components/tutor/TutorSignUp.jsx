@@ -52,14 +52,14 @@ const TutorSignUp = () => {
 
   useEffect(() => {
     if (success) {
-      // toast.success(message || "Sign up successful!");
+      toast.success(message);
       navigate("/tutor/verify-otp", {
         state: { message: "OTP Sented to your email", email: email },
       });
       dispatch(resetActions());
     }
     if (error) {
-      toast.error(message || "Sign up failed. Please try again.");
+      toast.error(error || "Sign up failed. Please try again.");
       dispatch(resetActions());
     }
   }, [success, error, message, navigate, dispatch]);

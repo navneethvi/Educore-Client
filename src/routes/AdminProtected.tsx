@@ -1,19 +1,24 @@
-import { useEffect } from "react";
+import React, { useEffect, ReactNode } from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
-// eslint-disable-next-line react/prop-types
-const AdminProtected = ({ children }) => {
+import { RootState } from "../store/store";
+
+interface AdminProtectedProps {
+  children: ReactNode;
+}
+
+const AdminProtected: React.FC<AdminProtectedProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { adminToken } = useSelector((state) => state.admin);
+  const adminToken = useSelector((state: RootState) => state.admin);
 
   useEffect(() => {
     if (!adminToken) {
       navigate("/admin/signin", { replace: true, state: location.state });
       return;
     }
-  }, [adminToken]);
+  }, [adminToken, navigate, location.state]);
 
   if (adminToken) {
     return children;

@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { resetActions } from "../../redux/admin/adminSlice";
 
+import { RootState } from "../../store/store";
 
 import { adminSignin } from "../../redux/admin/adminActions";
 
@@ -17,7 +18,7 @@ const AdminSignIn = () => {
   const dispatch = useDispatch();
 
   const { loading, error, message, success } = useSelector(
-    (state) => state.admin
+    (state: RootState) => state.admin
   );
 
   useEffect(() => {
