@@ -9,6 +9,7 @@ import {
   verifyStudentAccount,
   studentSignin,
   studentResetPass,
+  studentGoogleSignin,
 } from "./studentActions";
 
 interface StudentState {
@@ -200,6 +201,29 @@ const studentSlice = createSlice({
         }
       )
 
+      .addCase(studentGoogleSignin.pending, (state) => {
+        state.loading = true;
+        state.error = "";
+      })
+      .addCase(
+        studentGoogleSignin.fulfilled,
+        (state, action: PayloadAction<{ studentData: any }>) => {
+          console.log("paylooooooooad =========>", action.payload);
+          state.loading = false;
+          state.success = true;
+          state.studentData = action.payload.studentData;
+          state.studentToken = action.payload.studentData.token;
+          state.message = "Signin successful";
+        }
+      )
+      .addCase(
+        studentGoogleSignin.rejected,
+        (state, action: PayloadAction<string | undefined>) => {
+          state.loading = false;
+          state.error = action.payload || "Something went wrong";
+        }
+      )
+
       .addCase(studentResetPass.pending, (state) => {
         state.loading = true;
         state.error = "";
@@ -218,7 +242,6 @@ const studentSlice = createSlice({
   },
 });
 
-export const { resetActions, studentLogout } =
-  studentSlice.actions;
+export const { resetActions, studentLogout } = studentSlice.actions;
 
 export default studentSlice.reducer;

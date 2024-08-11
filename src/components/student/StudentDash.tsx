@@ -1,12 +1,26 @@
-import React from "react"
-import Dashboard from "../common/DashCommon/Dashboard"
+import React, { useEffect } from "react";
+import StudentSideBar from "../common/DashCommon/StudentSideBar";
+import { useLocation } from "react-router-dom";
+import Body from "../common/DashCommon/Body";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const StudentDash: React.FC = () => {
-  return (
-    <>
-      <Dashboard/>
-    </>
-  )
-}
+  const location = useLocation();
 
-export default StudentDash
+  useEffect(() => {
+    if (location.state.message) {
+      toast.success(location.state.message);
+    }
+  }, [location.state]);
+
+  return (
+    <div className="dashboard-container flex">
+      <ToastContainer />
+      <StudentSideBar />
+      <Body />
+    </div>
+  );
+};
+
+export default StudentDash;

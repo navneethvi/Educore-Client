@@ -10,6 +10,7 @@ import {
   SetStudentInterestsPayload,
   StudentResetPassData,
 } from "../../types/types";
+import { TokenResponse } from "@react-oauth/google";
 
 const studentSignupService = async (
   data: StudentSignupData
@@ -117,6 +118,19 @@ const studentSigninService = async (
   }
 };
 
+const studentGoogleSigninService = async (data: { token: string }) => {
+  try {
+    const response = await axios.post<{ message: string }>(
+      `${BASE_URL}/auth/google`,
+      data
+    );
+    console.log("response in service : ", response.data);
+    return response.data;
+  } catch (error: any) {
+    throw error.response.data;
+  }
+};
+
 const studentResetPassService = async (
   data: StudentResetPassData
 ): Promise<ApiResponse<any>> => {
@@ -140,5 +154,6 @@ export {
   forgotStudentPassService,
   verifyStudentAccountService,
   studentSigninService,
+  studentGoogleSigninService,
   studentResetPassService,
 };

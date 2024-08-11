@@ -11,7 +11,7 @@ import AddCardIcon from "@mui/icons-material/AddCard";
 import MenuIcon from "@mui/icons-material/Menu";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 
-const SideBar: React.FC = () => {
+const StudentSideBar: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleFoldClick = () => {
@@ -58,15 +58,7 @@ const SideBar: React.FC = () => {
               {!isCollapsed && <span>Courses</span>}
             </Link>
           </li>
-          <li>
-            <Link
-              to="/tutor/students"
-              className="p-2 hover:bg-gray-700 rounded flex items-center space-x-4 mb-4"
-            >
-              <PersonIcon className="w-6 h-6 text-white font-reem-kufi" />{" "}
-              {!isCollapsed && <span>Students</span>}
-            </Link>
-          </li>
+         
           <li>
             <Link
               to="/tutor/message"
@@ -91,7 +83,7 @@ const SideBar: React.FC = () => {
               className="p-2 hover:bg-gray-700 rounded flex items-center space-x-4 mb-4 whitespace-nowrap"
             >
               <AddCardIcon className="w-6 h-6 text-white font-reem-kufi" />{" "}
-              {!isCollapsed && <span className="ml-2">Add Course</span>}
+              {!isCollapsed && <span className="ml-2">Store</span>}
             </Link>
           </li>
         </ul>
@@ -100,4 +92,4 @@ const SideBar: React.FC = () => {
   );
 };
 
-export default SideBar;
+export default StudentSideBar;

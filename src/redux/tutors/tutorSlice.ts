@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import {
   tutorSignup,
@@ -7,10 +7,32 @@ import {
   tutorSignin,
   forgotTutorPass,
   verifyTutorAccount,
-  tutorResetPass
+  tutorResetPass,
+  tutorGoogleSignin,
 } from "./tutorActions";
 
-const initialState = {
+interface TutorData {
+  name: string;
+  image: string;
+  token: string;
+}
+
+interface TutorState {
+  tutorData: TutorData | null;
+  tutorToken: string | null;
+  success: boolean;
+  error: string;
+  loading: boolean;
+  message: string;
+  otpResendSuccess: boolean;
+  otpResendError: string;
+  otpResendLoading: boolean;
+  otpVerifySuccess: boolean;
+  otpVerifyLoading: boolean;
+  otpVerifyError: string;
+}
+
+const initialState : TutorState = {
   tutorData: null,
   tutorToken: null,
   success: false,
@@ -46,9 +68,9 @@ const tutorSlice = createSlice({
       state.loading = false;
       state.message = "";
     },
-    setTutorData: (state, action) => {
-      (state.tutorData = action.payload?.data),
-        (state.tutorToken = action.payload?.token);
+    setTutorData: (state, action: PayloadAction<{ data: TutorData; token: string }>) => {
+      state.tutorData = action.payload.data;
+      state.tutorToken = action.payload.token;
     },
   },
   extraReducers: (builder) => {
@@ -113,6 +135,23 @@ const tutorSlice = createSlice({
         state.error = action.payload || "Something went wrong";
       })
 
+      .addCase(tutorGoogleSignin.pending, (state) => {
+        state.loading = true;
+        state.error = "";
+      })
+      .addCase(tutorGoogleSignin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.tutorData = action.payload.tutorData;
+        state.tutorToken = action.payload.tutorData.token;
+        state.message = "Signin successful";
+      })
+      .addCase(tutorGoogleSignin.rejected, (state, action) => {
+        console.log("payload==========>", action.payload);
+        state.loading = false;
+        state.error = action.payload || "Something went wrong";
+      })
+
       .addCase(forgotTutorPass.pending, (state) => {
         state.loading = true;
         state.error = "";
@@ -154,6 +193,11 @@ const tutorSlice = createSlice({
         state.loading = false;
         state.error = action.payload || "Something went wrong";
       })
+
+      .addCase(tutorLogout.fulfilled, (state) => {
+        state.tutorData = null;
+        state.tutorToken = null;
+      });
   },
 });
 

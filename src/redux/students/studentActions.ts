@@ -8,6 +8,7 @@ import {
   verifyStudentAccountService,
   studentSigninService,
   studentResetPassService,
+  studentGoogleSigninService,
 } from "./studentServices";
 
 import {
@@ -18,6 +19,7 @@ import {
   StudentSignupData,
   StudentVerifyOtp,
 } from "../../types/types";
+
 
 const handleThunkError = (error: any, thunkAPI: any) => {
   console.log(error);
@@ -121,6 +123,23 @@ export const studentSignin = createAsyncThunk<
     return handleThunkError(error, thunkAPI);
   }
 });
+
+export const studentGoogleSignin = createAsyncThunk<
+any,
+{ token: string },
+{ rejectValue: string }
+>(
+  'studentGoogleSignin',
+  async (data: { token: string }, thunkAPI) => {
+    try {
+      const response = await studentGoogleSigninService(data);
+      console.log("in StudentGoogleSignin===>", response);
+      return response;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
 
 export const studentResetPass = createAsyncThunk<
   any,

@@ -96,6 +96,19 @@ const verifyTutorAccountService = async (data: {
   }
 };
 
+const tutorGoogleSigninService = async (data: { token: string }) => {
+  try {
+    const response = await axios.post<{ message: string }>(
+      `${BASE_URL}/auth/tutor/google`,
+      data
+    );
+    console.log("response in service : ", response.data);
+    return response.data;
+  } catch (error: any) {
+    throw error.response.data;
+  }
+};
+
 const tutorResetPassService = async (
   data: TutorResetPassData
 ): Promise<ApiResponse<any>> => {
@@ -111,6 +124,23 @@ const tutorResetPassService = async (
   }
 };
 
+const tutorLogoutService = async (token: string) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/auth/tutor/logout`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error : any) {
+    throw error.response.data;
+  }
+};
+
 export {
   tutorSignupService,
   tutorVerifyEmailService,
@@ -119,4 +149,6 @@ export {
   forgotTutorPassService,
   verifyTutorAccountService,
   tutorResetPassService,
+  tutorGoogleSigninService,
+  tutorLogoutService
 };

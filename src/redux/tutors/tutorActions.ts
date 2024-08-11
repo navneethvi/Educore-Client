@@ -8,6 +8,8 @@ import {
   forgotTutorPassService,
   verifyTutorAccountService,
   tutorResetPassService,
+  tutorGoogleSigninService,
+  tutorLogoutService,
 } from "./tutorServices";
 
 import {
@@ -108,6 +110,20 @@ export const verifyTutorAccount = createAsyncThunk<
   }
 });
 
+export const tutorGoogleSignin = createAsyncThunk<
+  any,
+  { token: string },
+  { rejectValue: string }
+>("tutorGoogleSignin", async (data: { token: string }, thunkAPI) => {
+  try {
+    const response = await tutorGoogleSigninService(data);
+    console.log("in TutorGoogleSignin===>", response);
+    return response;
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue(error.message);
+  }
+});
+
 export const tutorResetPass = createAsyncThunk<
   any,
   TutorResetPassData,
@@ -117,6 +133,18 @@ export const tutorResetPass = createAsyncThunk<
     const response = await tutorResetPassService(data);
     console.log("in TutorResetPass===>", response);
     return response;
+  } catch (error: any) {
+    return handleThunkError(error, thunkAPI);
+  }
+});
+
+export const tutorLogout = createAsyncThunk<
+  void,
+  string,
+  { rejectValue: string }
+>("tutorLogout", async (token, thunkAPI) => {
+  try {
+    await tutorLogoutService(token);
   } catch (error: any) {
     return handleThunkError(error, thunkAPI);
   }

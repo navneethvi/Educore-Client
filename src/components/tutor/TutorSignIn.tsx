@@ -7,10 +7,14 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { resetActions } from "../../redux/tutors/tutorSlice";
 import { Link } from "react-router-dom";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 
 import { tutorSignin } from "../../redux/tutors/tutorActions";
 
+import { tutorGoogleSignin } from "../../redux/tutors/tutorActions";
+
 import { RootState, AppDispatch } from "../../store/store";
+
 
 const TutorSignIn = () => {
   const [email, setEmail] = useState("")
@@ -30,15 +34,12 @@ const TutorSignIn = () => {
       toast.success(message);
       dispatch(resetActions());
       navigate("/tutor/dashboard", {
-        state: { message: "OTP Sented to your email", email: email },
+        state: { message: "You've successfully signed in.", email: email },
       });
     }
   })
 
-  const validateEmail = (email : string) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(String(email).toLowerCase());
-  };
+  
 
   const handleSignIn = async () => {
     if (!validateEmail(email)) {
@@ -52,6 +53,20 @@ const TutorSignIn = () => {
 
     dispatch(tutorSignin({email, password}))
 
+  };
+
+  const validateEmail = (email : string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(String(email).toLowerCase());
+  };
+
+  const responseGoogle = (response: CredentialResponse) => {
+    if (response.credential) {
+      // Send id_token to your server for verification
+      dispatch(tutorGoogleSignin({ token: response.credential }));
+    } else {
+      console.error('ID token is missing');
+    }
   };
 
   return (
@@ -102,19 +117,21 @@ const TutorSignIn = () => {
         <button className="bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500 w-full mb-4" onClick={handleSignIn} disabled={loading}>
          {loading ? "Signing In..." : "Sign In"}
         </button>
-        <button className="bg-gradient-to-r border-2 border-gray-400 h-12 text-gray-700 px-4 py-2 rounded-lg w-full flex items-center justify-center ">
-          {" "}
-          <span className="mr-4">
-            <GoogleIcon />
-          </span>
-          Sign in with Google
-        </button>
+        <div className="w-full mt-4 flex justify-center">
+          <GoogleLogin
+            onSuccess={responseGoogle}
+            onError={() => console.error("Google Sign-In Error")}
+          />
+        </div>
         <Link to={"/tutor/signup"}>
           <h2 className="text-sm font-semibold font-reem-kufi text-center mt-6 text-gray-600 hover:text-blue-600 cursor-pointer">
             Don't have an account?{" "}
             <span className="text-blue-600">Sign Up</span>
           </h2>
         </Link>
+        <div>
+
+        </div>
       </div>
       <div className="right mt-6">
         <img
@@ -124,6 +141,7 @@ const TutorSignIn = () => {
         />
       </div>
     </div>
+    
   );
 };
 
