@@ -9,12 +9,17 @@ import {
   verifyTutorAccount,
   tutorResetPass,
   tutorGoogleSignin,
+  tutorLogout
 } from "./tutorActions";
 
 interface TutorData {
   name: string;
   image: string;
   token: string;
+  email: string;
+  phone: string;
+  followers: string;
+  bio: string;
 }
 
 interface TutorState {
@@ -60,7 +65,7 @@ const tutorSlice = createSlice({
       state.otpResendError = "";
       state.otpResendLoading = false;
     },
-    tutorLogout: (state) => {
+    tutorLogoutLocal: (state) => {
       state.tutorData = null;
       state.tutorToken = null;
       state.success = false;
@@ -194,13 +199,21 @@ const tutorSlice = createSlice({
         state.error = action.payload || "Something went wrong";
       })
 
+      .addCase(tutorLogout.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(tutorLogout.fulfilled, (state) => {
         state.tutorData = null;
         state.tutorToken = null;
+        state.loading = false;
+      })
+      .addCase(tutorLogout.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Logout failed";
       });
   },
 });
 
-export const { resetActions, tutorLogout, setTutorData } = tutorSlice.actions;
+export const { resetActions, tutorLogoutLocal, setTutorData } = tutorSlice.actions;
 
 export default tutorSlice.reducer;

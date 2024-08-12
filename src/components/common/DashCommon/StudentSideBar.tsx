@@ -30,7 +30,7 @@ const StudentSideBar: React.FC = () => {
       <div className="flex items-center p-2">
         <button
           onClick={handleFoldClick}
-          className="bg-zinc-700 text-white w-12 h-12 flex items-center justify-center rounded-full"
+          className="bg-gray-800 text-white w-12 h-12 flex items-center justify-center rounded-full"
         >
           {isCollapsed ? <MenuIcon /> : <MenuOpenIcon />}
         </button>
