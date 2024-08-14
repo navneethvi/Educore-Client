@@ -146,6 +146,26 @@ const studentResetPassService = async (
   }
 };
 
+const studentLogoutService = async (
+  token: string
+): Promise<ApiResponse<any>> => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/auth/logout`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("response in servce : ", response.data);
+    return response.data;
+  } catch (error: any) {
+    throw error.response.data;
+  }
+};
+
 export {
   studentSignupService,
   studentVerifyEmailService,
@@ -156,4 +176,5 @@ export {
   studentSigninService,
   studentGoogleSigninService,
   studentResetPassService,
+  studentLogoutService
 };

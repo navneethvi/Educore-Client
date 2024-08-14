@@ -9,6 +9,7 @@ import {
   studentSigninService,
   studentResetPassService,
   studentGoogleSigninService,
+  studentLogoutService,
 } from "./studentServices";
 
 import {
@@ -20,10 +21,11 @@ import {
   StudentVerifyOtp,
 } from "../../types/types";
 
-
 const handleThunkError = (error: any, thunkAPI: any) => {
   console.log(error);
-  return thunkAPI.rejectWithValue(error.message || error.response?.data?.error || "Unknown error");
+  return thunkAPI.rejectWithValue(
+    error.message || error.response?.data?.error || "Unknown error"
+  );
 };
 
 export const studentSignup = createAsyncThunk<
@@ -104,7 +106,7 @@ export const verifyStudentAccount = createAsyncThunk<
   try {
     const response = await verifyStudentAccountService(data);
     console.log("in StudentVerifyAcc===>", response);
-    return response
+    return response;
   } catch (error: any) {
     return handleThunkError(error, thunkAPI);
   }
@@ -125,21 +127,18 @@ export const studentSignin = createAsyncThunk<
 });
 
 export const studentGoogleSignin = createAsyncThunk<
-any,
-{ token: string },
-{ rejectValue: string }
->(
-  'studentGoogleSignin',
-  async (data: { token: string }, thunkAPI) => {
-    try {
-      const response = await studentGoogleSigninService(data);
-      console.log("in StudentGoogleSignin===>", response);
-      return response;
-    } catch (error: any) {
-      return thunkAPI.rejectWithValue(error.message);
-    }
+  any,
+  { token: string },
+  { rejectValue: string }
+>("studentGoogleSignin", async (data: { token: string }, thunkAPI) => {
+  try {
+    const response = await studentGoogleSigninService(data);
+    console.log("in StudentGoogleSignin===>", response);
+    return response;
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue(error.message);
   }
-);
+});
 
 export const studentResetPass = createAsyncThunk<
   any,
@@ -149,6 +148,20 @@ export const studentResetPass = createAsyncThunk<
   try {
     const response = await studentResetPassService(data);
     console.log("in StudentResetPass===>", response);
+    return response.data;
+  } catch (error: any) {
+    return handleThunkError(error, thunkAPI);
+  }
+});
+
+export const studentLogout = createAsyncThunk<
+  void,
+  string,
+  { rejectValue: string }
+>("studentLogout", async (token, thunkAPI) => {
+  try {
+    const response = await studentLogoutService(token);
+    console.log("in StudentLogout===>", response);
     return response.data;
   } catch (error: any) {
     return handleThunkError(error, thunkAPI);

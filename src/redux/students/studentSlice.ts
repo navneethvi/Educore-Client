@@ -10,6 +10,7 @@ import {
   studentSignin,
   studentResetPass,
   studentGoogleSignin,
+  studentLogout,
 } from "./studentActions";
 
 interface StudentState {
@@ -55,7 +56,7 @@ const studentSlice = createSlice({
       state.otpResendError = "";
       state.otpResendLoading = false;
     },
-    studentLogout: (state) => {
+    studentLogoutLocal: (state) => {
       state.studentData = null;
       state.studentToken = null;
       state.success = false;
@@ -134,7 +135,7 @@ const studentSlice = createSlice({
           state.loading = false;
           state.success = true;
           state.studentData = action.payload.studentData;
-          state.studentToken = action.payload.studentData.token;
+          state.studentToken = action.payload.studentData.accessToken;
           state.message = "Signup successful";
         }
       )
@@ -189,7 +190,7 @@ const studentSlice = createSlice({
           state.loading = false;
           state.success = true;
           state.studentData = action.payload.studentData;
-          state.studentToken = action.payload.studentData.token;
+          state.studentToken = action.payload.studentData.accessToken;
           state.message = "Signin successful";
         }
       )
@@ -212,7 +213,7 @@ const studentSlice = createSlice({
           state.loading = false;
           state.success = true;
           state.studentData = action.payload.studentData;
-          state.studentToken = action.payload.studentData.token;
+          state.studentToken = action.payload.studentData.accessToken;
           state.message = "Signin successful";
         }
       )
@@ -238,10 +239,23 @@ const studentSlice = createSlice({
           state.loading = false;
           state.error = action.payload || "Something went wrong";
         }
-      );
+      )
+
+      .addCase(studentLogout.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(studentLogout.fulfilled, (state) => {
+        state.studentData = null;
+        state.studentToken = null;
+        state.loading = false;
+      })
+      .addCase(studentLogout.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Logout failed";
+      });
   },
 });
 
-export const { resetActions, studentLogout } = studentSlice.actions;
+export const { resetActions, studentLogoutLocal } = studentSlice.actions;
 
 export default studentSlice.reducer;

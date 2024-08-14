@@ -2,13 +2,20 @@ import { Route, Routes } from "react-router-dom";
 
 import StudentProtected from "./StudentProtected";
 
-import StudentDash from "../components/student/StudentDash";
 import SignIn from "../components/student/SignIn";
 import SignUp from "../components/student/SignUp";
 import ForgotPass from "../components/student/ForgotPass";
 import ResetPass from "../components/student/ResetPass";
 import VerifyEmail from "../components/student/VerifyEmail";
 import SelectInterests from "../components/student/SelectInterests";
+
+import Layout from "../components/common/DashCommon/StudentLayout";
+
+import Dashboard from "../components/common/contents/student/Dashboard";
+import Courses from "../components/common/contents/student/Courses";
+import Messages from "../components/common/contents/student/Messages";
+import Webinars from "../components/common/contents/student/Webinar";
+import Store from "../components/common/contents/student/Store";
 
 const StudentRoutes = () => {
   return (
@@ -20,13 +27,19 @@ const StudentRoutes = () => {
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/select-interests" element={<SelectInterests />} />
       <Route
-        path="/dashboard"
+        path="/"
         element={
           <StudentProtected>
-            <StudentDash />
+            <Layout />
           </StudentProtected>
         }
-      />
+      >
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="courses" element={<Courses />} />
+        <Route path="messages" element={<Messages />} />
+        <Route path="webinar" element={<Webinars />} />
+        <Route path="store" element={<Store />} />
+      </Route>
     </Routes>
   );
 };

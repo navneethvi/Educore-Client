@@ -1,4 +1,5 @@
-import axios from "axios";
+import axios from '../../utils/axios'
+// import axios from "axios";
 
 import { BASE_URL } from "../../utils/configs";
 
@@ -126,6 +127,8 @@ const tutorResetPassService = async (
 
 const tutorLogoutService = async (token: string) => {
   try {
+    console.log(token);
+    
     const response = await axios.post(
       `${BASE_URL}/auth/tutor/logout`,
       {},

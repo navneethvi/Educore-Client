@@ -84,9 +84,10 @@ const tutorSlice = createSlice({
         state.loading = true;
         state.error = "";
       })
-      .addCase(tutorSignup.fulfilled, (state) => {
+      .addCase(tutorSignup.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
+
       })
       .addCase(tutorSignup.rejected, (state, action) => {
         state.loading = false;
@@ -114,7 +115,7 @@ const tutorSlice = createSlice({
         state.loading = false;
         state.success = true;
         state.tutorData = action.payload.tutorData;
-        state.tutorToken = action.payload.tutorData.token;
+        state.tutorToken = action.payload.tutorData.accessToken;
         state.message = "Signup successful";
       })
       .addCase(tutorVerifyEmail.rejected, (state, action) => {
@@ -131,7 +132,7 @@ const tutorSlice = createSlice({
         state.loading = false;
         state.success = true;
         state.tutorData = action.payload.tutorData;
-        state.tutorToken = action.payload.tutorData.token;
+        state.tutorToken = action.payload.tutorData.accessToken;
         state.message = "Signin successful";
       })
       .addCase(tutorSignin.rejected, (state, action) => {
@@ -148,7 +149,7 @@ const tutorSlice = createSlice({
         state.loading = false;
         state.success = true;
         state.tutorData = action.payload.tutorData;
-        state.tutorToken = action.payload.tutorData.token;
+        state.tutorToken = action.payload.tutorData.accessToken;
         state.message = "Signin successful";
       })
       .addCase(tutorGoogleSignin.rejected, (state, action) => {
