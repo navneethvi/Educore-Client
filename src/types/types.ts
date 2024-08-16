@@ -56,7 +56,7 @@ export interface StudentResetPassData {
 export interface TutorSignupData {
   name: string;
   email: string;
-  phone: number;
+  phone: string;
   password: string;
   confirmPassword: string;
   role: string;

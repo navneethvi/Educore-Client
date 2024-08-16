@@ -1,5 +1,5 @@
-import CategoryIcon from '@mui/icons-material/Category';
-import React from 'react';
+import CategoryIcon from "@mui/icons-material/Category";
+import React from "react";
 
 const CategoryCard: React.FC = () => {
   return (
@@ -8,6 +8,6 @@ const CategoryCard: React.FC = () => {
       <h1 className="font-reem-kufi text-2xl m-4 text-gray-600">Category Name</h1>
     </div>
   );
-}
+};
 
 export default CategoryCard;

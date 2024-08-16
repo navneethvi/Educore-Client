@@ -17,7 +17,7 @@ const Layout: React.FC = () => {
       <Box className={`flex flex-col flex-grow transition-all duration-300 ${isSidebarCollapsed ? 'ml-20' : 'ml-60'}`}>
         <Header isSidebarCollapsed={isSidebarCollapsed} />
         <Box className="flex-grow p-4 bg-gray-100">
-          <Outlet /> 
+          <Outlet />
         </Box>
       </Box>
     </Box>

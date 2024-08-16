@@ -13,7 +13,7 @@ import { RootState, AppDispatch } from "../../store/store";
 interface FormValues {
   name: string;
   email: string;
-  phone: number;
+  phone: string;
   password: string;
   confirmPassword: string;
   role: string;
@@ -31,7 +31,7 @@ const TutorSignUp: React.FC = () => {
     initialValues: {
       name: "",
       email: "",
-      phone: 0,
+      phone: "",
       password: "",
       confirmPassword: "",
       role: "tutor",
@@ -85,21 +85,21 @@ const TutorSignUp: React.FC = () => {
   return (
     <>
       <ToastContainer />
-      <div className="signup-container flex pl-20 pr-20 pt-10 justify-between space-x-28 items-center">
-        <div className="left w-full max-w-lg ml-20">
-          <div className="heading">
-            <h1 className="text-4xl font-reem-kufi text-gray-600">
-              WELCOME TO EDUCORE 🎓
+      <div className="signup-container flex flex-col lg:flex-row px-6 lg:px-20 pt-8 lg:pt-10 items-center lg:items-center justify-center lg:justify-between min-h-screen">
+        <div className="left w-full lg:w-1/2 max-w-lg flex flex-col items-center lg:items-start lg:ml-10">
+          <div className="heading text-center lg:text-left mb-6">
+            <h1 className="text-3xl lg:text-4xl font-reem-kufi text-gray-600">
+              WELCOME 🎓
             </h1>
-            <p className="w-96 mt-4 text-gray-500 font-medium">
+            <p className="mt-4 text-gray-500 font-medium w-full lg:w-96">
               Share Your Knowledge, Inspire the Future
             </p>
           </div>
-          <form onSubmit={formik.handleSubmit} className="mt-6">
+          <form onSubmit={formik.handleSubmit} className="w-full">
             <div className="relative mb-4">
               <label
                 htmlFor="name"
-                className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi ml-3"
+                className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi"
               >
                 Name
               </label>
@@ -110,37 +110,32 @@ const TutorSignUp: React.FC = () => {
                 className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
               />
               {formik.touched.name && formik.errors.name ? (
-                <p className="text-red-500 text-sm ml-3 mt-1">
-                  {formik.errors.name}
-                </p>
+                <p className="text-red-500 text-sm mt-1">{formik.errors.name}</p>
               ) : null}
             </div>
-
+  
             <div className="relative mb-4">
               <label
                 htmlFor="email"
-                className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi ml-3"
+                className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi"
               >
                 Email
               </label>
               <input
                 type="email"
                 id="email"
-                value={formik.values.email}
-                onChange={formik.handleChange}
+                {...formik.getFieldProps("email")}
                 className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
               />
               {formik.touched.email && formik.errors.email ? (
-                <p className="text-red-500 text-sm ml-3 mt-1">
-                  {formik.errors.email}
-                </p>
+                <p className="text-red-500 text-sm mt-1">{formik.errors.email}</p>
               ) : null}
             </div>
-
+  
             <div className="relative mb-4">
               <label
                 htmlFor="phone"
-                className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi ml-3"
+                className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi"
               >
                 Phone No
               </label>
@@ -151,16 +146,14 @@ const TutorSignUp: React.FC = () => {
                 className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
               />
               {formik.touched.phone && formik.errors.phone ? (
-                <p className="text-red-500 text-sm ml-3 mt-1">
-                  {formik.errors.phone}
-                </p>
+                <p className="text-red-500 text-sm mt-1">{formik.errors.phone}</p>
               ) : null}
             </div>
-
+  
             <div className="relative mb-4">
               <label
                 htmlFor="password"
-                className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi ml-3"
+                className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi"
               >
                 Password
               </label>
@@ -171,16 +164,14 @@ const TutorSignUp: React.FC = () => {
                 className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
               />
               {formik.touched.password && formik.errors.password ? (
-                <p className="text-red-500 text-sm ml-3 mt-1">
-                  {formik.errors.password}
-                </p>
+                <p className="text-red-500 text-sm mt-1">{formik.errors.password}</p>
               ) : null}
             </div>
-
+  
             <div className="relative mb-4">
               <label
                 htmlFor="confirmPassword"
-                className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi ml-3"
+                className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi"
               >
                 Confirm Password
               </label>
@@ -191,12 +182,10 @@ const TutorSignUp: React.FC = () => {
                 className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
               />
               {formik.touched.confirmPassword && formik.errors.confirmPassword ? (
-                <p className="text-red-500 text-sm ml-3 mt-1">
-                  {formik.errors.confirmPassword}
-                </p>
+                <p className="text-red-500 text-sm mt-1">{formik.errors.confirmPassword}</p>
               ) : null}
             </div>
-
+  
             <button
               type="submit"
               className="bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500 w-full mb-4"
@@ -205,24 +194,28 @@ const TutorSignUp: React.FC = () => {
               {loading ? "Signing Up..." : "Sign Up"}
             </button>
           </form>
+  
+          <div className="w-full flex justify-center">
+  <Link to={"/tutor/signin"}>
+    <h2 className="text-sm font-semibold font-reem-kufi text-center mt-6 text-gray-600 hover:text-blue-600 cursor-pointer">
+      Already have an account? <span className="text-blue-600">Sign In</span>
+    </h2>
+  </Link>
+</div>
 
-          <Link to={"/tutor/signin"}>
-            <h2 className="text-sm font-semibold font-reem-kufi text-center mt-6 text-gray-600 hover:text-blue-600 cursor-pointer">
-              Already have an account?{" "}
-              <span className="text-blue-600">Sign In</span>
-            </h2>
-          </Link>
         </div>
-        <div className="right mt-6">
+        <div className="right hidden lg:flex w-full lg:w-1/2 items-center justify-center lg:h-full">
           <img
             src="/src/assets/signup.png"
             alt="Sign up illustration"
-            className="w-82 object-center rounded-lg"
+            className="w-full lg:w-4/5 object-cover rounded-lg"
           />
         </div>
       </div>
     </>
   );
+  
+  
 }
 
 export default TutorSignUp;

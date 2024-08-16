@@ -105,25 +105,24 @@ const ForgotPass: React.FC = () => {
   return (
     <>
       <ToastContainer />
-      <div className="signup-container flex pl-20 pr-20 pt-10 justify-between space-x-28 items-center">
-        <div className="left w-full max-w-lg ml-20">
-          <div className="heading">
-            <h1 className="text-4xl font-reem-kufi text-gray-600">
+      <div className="signup-container flex flex-col md:flex-row px-6 md:px-20 py-44 md:py-20 items-center">
+        <div className="left w-full md:w-1/2 max-w-lg md:ml-20 mb-10 md:mb-0">
+          <div className="heading text-center md:text-left">
+            <h1 className="text-3xl md:text-4xl font-reem-kufi text-gray-600">
               RECOVER YOUR ACCOUNT
             </h1>
-            <p className="w-96 mt-4 text-gray-500 font-medium">
-              We will send you an email with instructions to reset your
-              password.
+            <p className="w-full md:w-96 mt-4 text-gray-500 font-medium">
+              We will send you an email with instructions to reset your password.
             </p>
           </div>
           <div className="mt-6">
             <label
               htmlFor="email"
-              className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi ml-3"
+              className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi"
             >
               Email
             </label>
-            <div className="flex justify-between items-center space-x-4 mb-8">
+            <div className="flex flex-col md:flex-row justify-center md:justify-start space-y-4 md:space-y-0 md:space-x-4 mb-8">
               <input
                 type="email"
                 id="email"
@@ -132,7 +131,7 @@ const ForgotPass: React.FC = () => {
                 className="flex-grow py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
               />
               <button
-                className={`bg-gradient-to-r from-blue-500 to-blue-800 h-11 text-white px-4 py-2 rounded-lg w-28 ${
+                className={`bg-gradient-to-r from-blue-500 to-blue-800 h-11 text-white px-4 py-2 rounded-lg w-full md:w-28 ${
                   loading
                     ? "cursor-not-allowed"
                     : "hover:from-blue-800 hover:to-blue-500"
@@ -144,14 +143,14 @@ const ForgotPass: React.FC = () => {
               </button>
             </div>
           </div>
-
+  
           <label
             htmlFor="otp"
-            className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi ml-3"
+            className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi"
           >
             OTP
           </label>
-          <div className="flex justify-center space-x-4 mt-4">
+          <div className="flex flex-wrap justify-center mt-8 md:mt-4 gap-4">
             {otp.map((_, index) => (
               <input
                 key={index}
@@ -160,13 +159,13 @@ const ForgotPass: React.FC = () => {
                 value={otp[index]}
                 onChange={(e) => handleChange(e.target, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
-                className="w-full h-12 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi text-center text-xl focus:ring-blue-500 focus:border-blue-500 mb-6"
+                className="w-16 h-12 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi text-center text-xl focus:ring-blue-500 focus:border-blue-500 mb-4"
               />
             ))}
           </div>
-
+  
           <button
-            className={`bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg w-full mb-4 ${
+            className={`bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg w-full mt-6 ${
               otpVerifyLoading
                 ? "cursor-not-allowed"
                 : "hover:from-blue-800 hover:to-blue-500"
@@ -177,16 +176,19 @@ const ForgotPass: React.FC = () => {
             {otpVerifyLoading ? "Loading..." : "Submit"}
           </button>
         </div>
-        <div className="right mt-6 w-full">
+        <div className="right hidden md:block md:w-1/2 mt-6">
           <img
             src="/src/assets/signin.png"
             alt="Description of the image"
-            className="w-82 object-center rounded-lg"
+            className="w-full object-cover rounded-lg"
           />
         </div>
       </div>
     </>
   );
+  
+  
+  
 };
 
 export default ForgotPass;

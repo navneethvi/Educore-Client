@@ -10,7 +10,7 @@ import { Formik, Field, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 
 const SignUp = () => {
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState("");
   const navigate = useNavigate();
   const dispatch: AppDispatch = useDispatch();
   const { loading, success, error, message } = useSelector(
@@ -46,12 +46,12 @@ const SignUp = () => {
       .min(8, "Password must be at least 8 characters long.")
       .required("Password is required."),
     confirmPassword: Yup.string()
-      .oneOf([Yup.ref('password')], "Confirm password does not match.")
+      .oneOf([Yup.ref("password")], "Confirm password does not match.")
       .required("Confirm password is required."),
   });
 
   const handleSubmit = (values: any) => {
-    setEmail(values.email)
+    setEmail(values.email);
     dispatch(
       studentSignup({
         name: values.name,
@@ -67,133 +67,156 @@ const SignUp = () => {
   return (
     <>
       <ToastContainer />
-      <div className="signup-container flex pl-20 pr-20 pt-10 justify-between space-x-28 items-center">
-        <div className="left w-full max-w-lg ml-20">
-          <div className="heading">
-            <h1 className="text-4xl font-reem-kufi text-gray-600">
-              WELCOME BACK🚀
-            </h1>
-            <p className="w-96 mt-4 text-gray-500 font-medium">
-              Today is a new day, it's your day, you shape it. Sign in to
-              continue your learning.
-            </p>
+      <div className="signup-container flex flex-col md:flex-row px-6 md:px-20 pt-32 md:pt-10">
+        <div className="left w-full md:w-1/2 flex items-center justify-center">
+          <div className="max-w-md mx-auto">
+            <div className="heading text-center md:text-left">
+              <h1 className="text-3xl md:text-4xl font-reem-kufi text-gray-600">
+                WELCOME 🚀
+              </h1>
+              <p className="mt-4 text-gray-500 font-medium">
+                Today is a new day, it's your day, you shape it. Sign in to
+                continue your learning.
+              </p>
+            </div>
+            <Formik
+              initialValues={{
+                name: "",
+                email: "",
+                phone: "",
+                password: "",
+                confirmPassword: "",
+              }}
+              validationSchema={validationSchema}
+              onSubmit={handleSubmit}
+            >
+              {({ isSubmitting }) => (
+                <Form className="mt-6 space-y-4">
+                  <div className="relative">
+                    <label
+                      htmlFor="name"
+                      className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi"
+                    >
+                      Name
+                    </label>
+                    <Field
+                      type="text"
+                      id="name"
+                      name="name"
+                      className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <ErrorMessage
+                      name="name"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <label
+                      htmlFor="email"
+                      className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi"
+                    >
+                      Email
+                    </label>
+                    <Field
+                      type="email"
+                      id="email"
+                      name="email"
+                      className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <ErrorMessage
+                      name="email"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <label
+                      htmlFor="phone"
+                      className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi"
+                    >
+                      Phone No
+                    </label>
+                    <Field
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <ErrorMessage
+                      name="phone"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <label
+                      htmlFor="password"
+                      className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi"
+                    >
+                      Password
+                    </label>
+                    <Field
+                      type="password"
+                      id="password"
+                      name="password"
+                      className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <ErrorMessage
+                      name="password"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <label
+                      htmlFor="confirmPassword"
+                      className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi"
+                    >
+                      Confirm Password
+                    </label>
+                    <Field
+                      type="password"
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <ErrorMessage
+                      name="confirmPassword"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500 w-full"
+                    disabled={isSubmitting || loading}
+                  >
+                    {loading ? "Signing Up..." : "Sign Up"}
+                  </button>
+                </Form>
+              )}
+            </Formik>
+
+            <Link to={"/signin"}>
+              <h2 className="text-sm font-semibold font-reem-kufi text-center mt-6 text-gray-600 hover:text-blue-600 cursor-pointer">
+                Already have an account?{" "}
+                <span className="text-blue-600">Sign In</span>
+              </h2>
+            </Link>
           </div>
-          <Formik
-            initialValues={{
-              name: "",
-              email: "",
-              phone: "",
-              password: "",
-              confirmPassword: "",
-            }}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
-          >
-            {({ isSubmitting }) => (
-              <Form className="mt-6">
-                <div className="relative mb-4">
-                  <label
-                    htmlFor="name"
-                    className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi ml-3"
-                  >
-                    Name
-                  </label>
-                  <Field
-                    type="text"
-                    id="name"
-                    name="name"
-                    className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <ErrorMessage name="name" component="p" className="text-red-500 text-sm ml-3 mt-1" />
-                </div>
-
-                <div className="relative mb-4">
-                  <label
-                    htmlFor="email"
-                    className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi ml-3"
-                  >
-                    Email
-                  </label>
-                  <Field
-                    type="email"
-                    id="email"
-                    name="email"
-                    className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <ErrorMessage name="email" component="p" className="text-red-500 text-sm ml-3 mt-1" />
-                </div>
-
-                <div className="relative mb-4">
-                  <label
-                    htmlFor="phone"
-                    className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi ml-3"
-                  >
-                    Phone No
-                  </label>
-                  <Field
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <ErrorMessage name="phone" component="p" className="text-red-500 text-sm ml-3 mt-1" />
-                </div>
-
-                <div className="relative mb-4">
-                  <label
-                    htmlFor="password"
-                    className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi ml-3"
-                  >
-                    Password
-                  </label>
-                  <Field
-                    type="password"
-                    id="password"
-                    name="password"
-                    className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <ErrorMessage name="password" component="p" className="text-red-500 text-sm ml-3 mt-1" />
-                </div>
-
-                <div className="relative mb-4">
-                  <label
-                    htmlFor="confirmPassword"
-                    className="block text-gray-700 text-sm font-medium mb-2 font-reem-kufi ml-3"
-                  >
-                    Confirm Password
-                  </label>
-                  <Field
-                    type="password"
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <ErrorMessage name="confirmPassword" component="p" className="text-red-500 text-sm ml-3 mt-1" />
-                </div>
-
-                <button
-                  type="submit"
-                  className="bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500 w-full mb-4"
-                  disabled={isSubmitting || loading}
-                >
-                  {loading ? "Signing Up..." : "Sign Up"}
-                </button>
-              </Form>
-            )}
-          </Formik>
-
-          <Link to={"/signin"}>
-            <h2 className="text-sm font-semibold font-reem-kufi text-center mt-6 text-gray-600 hover:text-blue-600 cursor-pointer">
-              Already have an account?{" "}
-              <span className="text-blue-600">Sign In</span>
-            </h2>
-          </Link>
         </div>
-        <div className="right mt-6">
+
+        <div className="right hidden md:flex w-full md:w-1/2 items-center justify-center mt-6 md:mt-0 md:ml-20">
           <img
             src="/src/assets/signup.png"
             alt="Description of the image"
-            className="w-82 object-center rounded-lg"
+            className="w-full md:w-4/5 lg:w-full xl:max-w-lg 2xl:max-w-xl object-cover rounded-lg"
           />
         </div>
       </div>

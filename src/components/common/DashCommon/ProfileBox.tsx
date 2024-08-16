@@ -70,18 +70,18 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({
           alignItems: "center",
         }}
       >
-        <Typography variant="body1">Profile</Typography>
+        <Avatar src={image} alt={name} sx={{ marginRight: 2 }} />
+        <Typography variant="body1">{name}</Typography>
       </MenuItem>
       <MenuItem
         onClick={handleLogout}
         sx={{
           fontSize: "1rem",
+          width: 270,
           padding: "12px 20px",
-          color: "#d32f2f", // Red text color for Logout
           "&:hover": {
-            backgroundColor: "#fbe9e7", // Light red background on hover
+            backgroundColor: "#f0f0f0",
           },
-          borderRadius: 1,
         }}
       >
         Logout
