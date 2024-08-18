@@ -58,4 +58,47 @@ const getTutorsDataService = async (
   }
 };
 
-export { adminSigninService, getStudentsDataService, getTutorsDataService };
+const getCategoriesDataService = async (
+  token: string,
+  page: number
+): Promise<ApiResponse<any>> => {
+  try {
+    console.log("page in service ==>", page);
+    
+    const response = await axios.get(
+      `${BASE_URL}/course/get_categories?page=${page}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("response in service: ", response.data);
+    return response.data;
+  } catch (error: any) {
+    throw error.response.data;
+  }
+};
+
+const addCategoryService = async (
+  token: string,
+  categoryName: string
+): Promise<ApiResponse<any>> => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/course/add_category`,
+      { name: categoryName },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("response in service: ", response.data);
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || { message: "An error occurred" };
+  }
+};
+
+export { adminSigninService, getStudentsDataService, getTutorsDataService, getCategoriesDataService, addCategoryService };

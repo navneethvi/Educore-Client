@@ -38,10 +38,10 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 const Students: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
-  const {
-    students: { data: students, loading, error, totalPages },
-    adminToken,
-  } = useSelector((state: RootState) => state.admin);
+ const {
+  students: { data: students, loading, error, totalPages },
+  adminToken,
+} = useSelector((state: RootState) => state.admin);
 
   const [page, setPage] = useState(1);
   const [loadingPage, setLoadingPage] = useState(false);
@@ -139,8 +139,9 @@ const Students: React.FC = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
-                style={{ minHeight: "64px" }}
-              ></motion.div>
+                style={{ minHeight: '64px' }} 
+              >
+              </motion.div>
             )}
           </>
         ) : (

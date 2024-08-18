@@ -1,6 +1,12 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { adminSignin, fetchStudents, fetchTutors } from "./adminActions";
+import {
+  addCategory,
+  adminSignin,
+  fetchCategories,
+  fetchStudents,
+  fetchTutors,
+} from "./adminActions";
 import { ApiResponse } from "../../types/types";
 import { number } from "yup";
 
@@ -20,6 +26,12 @@ interface Tutor {
   activity: string;
 }
 
+interface Category {
+  _id: string;
+  name: string;
+  course: any[];
+}
+
 interface PaginatedData<T> {
   data: T[];
   totalPages: number;
@@ -36,6 +48,7 @@ interface AdminState {
   message: string;
   students: PaginatedData<Student>;
   tutors: PaginatedData<Tutor>;
+  categories: PaginatedData<Category>;
 }
 
 const initialState: AdminState = {
@@ -52,6 +65,12 @@ const initialState: AdminState = {
     error: "",
   },
   tutors: {
+    data: [],
+    totalPages: 1,
+    loading: false,
+    error: "",
+  },
+  categories: {
     data: [],
     totalPages: 1,
     loading: false,
@@ -127,12 +146,40 @@ const adminSlice = createSlice({
       })
       .addCase(fetchTutors.fulfilled, (state, action: any) => {
         state.tutors.loading = false;
-        state.tutors.data = action.payload.students;
+        state.tutors.data = action.payload.tutors;
         state.tutors.totalPages = action.payload.totalPages;
       })
       .addCase(fetchTutors.rejected, (state, action: PayloadAction<any>) => {
         state.tutors.loading = false;
         state.tutors.error = action.payload || "Failed to fetch students";
+      })
+
+      .addCase(fetchCategories.pending, (state) => {
+        state.categories.loading = true;
+        state.categories.error = "";
+      })
+      .addCase(fetchCategories.fulfilled, (state, action: any) => {
+        state.categories.loading = false;
+        state.categories.data = action.payload.categories;
+        state.categories.totalPages = action.payload.totalPages;
+      })
+      .addCase(fetchCategories.rejected, (state, action: PayloadAction<any>) => {
+        state.categories.loading = false;
+        state.categories.error = action.payload || "Failed to fetch students";
+      })
+
+      .addCase(addCategory.pending, (state) => {
+        state.categories.loading = true;
+        state.categories.error = "";
+      })
+      .addCase(addCategory.fulfilled, (state, action: any) => {
+        state.categories.loading = false;
+        // state.categories.data = action.payload.categories;
+        // state.categories.totalPages = action.payload.totalPages;
+      })
+      .addCase(addCategory.rejected, (state, action: PayloadAction<any>) => {
+        state.categories.loading = false;
+        state.categories.error = action.payload || "Failed to fetch students";
       });
   },
 });
