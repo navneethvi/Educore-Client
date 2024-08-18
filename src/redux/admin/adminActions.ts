@@ -3,6 +3,7 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import {
   addCategoryService,
   adminSigninService,
+  deleteCategoryService,
   getCategoriesDataService,
   getStudentsDataService,
   getTutorsDataService,
@@ -88,6 +89,23 @@ export const addCategory = createAsyncThunk<
 >("addCategory", async ({ token, name }, thunkAPI) => {
   try {
     const response = await addCategoryService(token, name);
+    return response;
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue(
+      error.message || error.response?.data?.error || "An error occurred"
+    );
+  }
+});
+
+export const deleteCategory = createAsyncThunk<
+  ApiResponse<any>,
+  { token: string; category_id: string },
+  {
+    rejectValue: string;
+  }
+>("deleteCategory", async ({ token, category_id }, thunkAPI) => {
+  try {
+    const response = await deleteCategoryService(token, category_id);
     return response;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(

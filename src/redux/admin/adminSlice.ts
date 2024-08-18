@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   addCategory,
   adminSignin,
+  deleteCategory,
   fetchCategories,
   fetchStudents,
   fetchTutors,
@@ -174,12 +175,22 @@ const adminSlice = createSlice({
       })
       .addCase(addCategory.fulfilled, (state, action: any) => {
         state.categories.loading = false;
-        // state.categories.data = action.payload.categories;
-        // state.categories.totalPages = action.payload.totalPages;
       })
       .addCase(addCategory.rejected, (state, action: PayloadAction<any>) => {
         state.categories.loading = false;
         state.categories.error = action.payload || "Failed to fetch students";
+      })
+
+      .addCase(deleteCategory.pending, (state) => {
+        state.categories.loading = true;
+        state.categories.error = "";
+      })
+      .addCase(deleteCategory.fulfilled, (state, action: any) => {
+        state.categories.loading = false;
+      })
+      .addCase(deleteCategory.rejected, (state, action: PayloadAction<any>) => {
+        state.categories.loading = false;
+        state.categories.error = action.payload || "Failed to Delete Category";
       });
   },
 });

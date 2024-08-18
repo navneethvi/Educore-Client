@@ -20,7 +20,7 @@ const getStudentsDataService = async (
 ): Promise<ApiResponse<any>> => {
   try {
     console.log("page in service ==>", page);
-    
+
     const response = await axios.get(
       `${BASE_URL}/auth/admin/get_students?page=${page}`,
       {
@@ -42,7 +42,7 @@ const getTutorsDataService = async (
 ): Promise<ApiResponse<any>> => {
   try {
     console.log("page in service ==>", page);
-    
+
     const response = await axios.get(
       `${BASE_URL}/auth/admin/get_tutors?page=${page}`,
       {
@@ -64,7 +64,7 @@ const getCategoriesDataService = async (
 ): Promise<ApiResponse<any>> => {
   try {
     console.log("page in service ==>", page);
-    
+
     const response = await axios.get(
       `${BASE_URL}/course/get_categories?page=${page}`,
       {
@@ -101,4 +101,32 @@ const addCategoryService = async (
   }
 };
 
-export { adminSigninService, getStudentsDataService, getTutorsDataService, getCategoriesDataService, addCategoryService };
+const deleteCategoryService = async (
+  token: string,
+  category_id: string
+): Promise<ApiResponse<any>> => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/course/delete_category`,
+      { _id: category_id },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("response in service: ", response.data);
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || { message: "An error occurred" };
+  }
+};
+
+export {
+  adminSigninService,
+  getStudentsDataService,
+  getTutorsDataService,
+  getCategoriesDataService,
+  addCategoryService,
+  deleteCategoryService
+};

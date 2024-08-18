@@ -3,9 +3,10 @@ import { Box, Button, TextField, Table, TableBody, TableCell, TableContainer, Ta
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../../../store/store";
-import { fetchCategories, addCategory } from "../../../../redux/admin/adminActions";
+import { fetchCategories, addCategory, deleteCategory } from "../../../../redux/admin/adminActions";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import Swal from "sweetalert2"; // Import Swal
 
 const Category: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
@@ -49,12 +50,45 @@ const Category: React.FC = () => {
         toast.success("Category added successfully!");
         setNewCategory("");
 
-        // Refetch the categories to include the new one
         dispatch(fetchCategories({ token: adminToken, page }));
       })
       .catch((err) => {
         toast.error(`${err}`);
       });
+  };
+
+  const handleDeleteCategory = (categoryId: string) => {
+    if (!adminToken) {
+      toast.error("Admin token is missing!");
+      return;
+    }
+
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(deleteCategory({ token: adminToken, category_id: categoryId }))
+          .unwrap()
+          .then(() => {
+            dispatch(fetchCategories({ token: adminToken, page }));
+          })
+          .catch((err) => {
+            toast.error(`Error: ${err}`);
+          });
+        
+        Swal.fire(
+          'Deleted!',
+          'Your category has been deleted.',
+          'success'
+        );
+      }
+    });
   };
 
   return (
@@ -143,7 +177,7 @@ const Category: React.FC = () => {
                       <Button
                         variant="contained"
                         color="secondary"
-                        // onClick={() => deleteCategory(category._id)}
+                        onClick={() => handleDeleteCategory(category._id)}
                       >
                         Delete
                       </Button>
@@ -157,13 +191,7 @@ const Category: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 )}
-                {/* {error && (
-                  <TableRow>
-                    <TableCell colSpan={3} align="center" color="error">
-                      Error: {error}
-                    </TableCell>
-                  </TableRow>
-                )} */}
+   
               </TableBody>
             </Table>
           </TableContainer>
