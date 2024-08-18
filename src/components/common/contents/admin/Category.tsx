@@ -1,12 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Stack, Pagination } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Stack,
+  Pagination,
+} from "@mui/material";
+
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../../../store/store";
-import { fetchCategories, addCategory, deleteCategory } from "../../../../redux/admin/adminActions";
+import {
+  fetchCategories,
+  addCategory,
+  deleteCategory,
+} from "../../../../redux/admin/adminActions";
 import { toast, ToastContainer } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
-import Swal from "sweetalert2"; // Import Swal
+import "react-toastify/dist/ReactToastify.css";
+import Swal from "sweetalert2";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const Category: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
@@ -64,13 +83,13 @@ const Category: React.FC = () => {
     }
 
     Swal.fire({
-      title: 'Are you sure?',
+      title: "Are you sure?",
       text: "You won't be able to revert this!",
-      icon: 'warning',
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!'
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
         dispatch(deleteCategory({ token: adminToken, category_id: categoryId }))
@@ -81,12 +100,8 @@ const Category: React.FC = () => {
           .catch((err) => {
             toast.error(`Error: ${err}`);
           });
-        
-        Swal.fire(
-          'Deleted!',
-          'Your category has been deleted.',
-          'success'
-        );
+
+        Swal.fire("Deleted!", "Your category has been deleted.", "success");
       }
     });
   };
@@ -110,7 +125,13 @@ const Category: React.FC = () => {
           transition={{ duration: 0.5 }}
           style={{ flex: 2, marginRight: "20px" }}
         >
-          <TableContainer component={Paper} sx={{ boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", borderRadius: "8px" }}>
+          <TableContainer
+            component={Paper}
+            sx={{
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              borderRadius: "8px",
+            }}
+          >
             <Table>
               <TableHead>
                 <TableRow>
@@ -174,13 +195,12 @@ const Category: React.FC = () => {
                       {category.course ? category.course.length : 0}
                     </TableCell>
                     <TableCell align="center" sx={{ padding: "16px" }}>
-                      <Button
-                        variant="contained"
-                        color="secondary"
+                      <button
+                        className="bg-purple-600 text-white text-xs px-5 py-2 rounded-full"
                         onClick={() => handleDeleteCategory(category._id)}
                       >
                         Delete
-                      </Button>
+                      </button>
                     </TableCell>
                   </motion.tr>
                 ))}
@@ -191,7 +211,6 @@ const Category: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 )}
-   
               </TableBody>
             </Table>
           </TableContainer>
@@ -239,13 +258,13 @@ const Category: React.FC = () => {
               onChange={(e) => setNewCategory(e.target.value)}
               sx={{ mb: 2 }}
             />
-            <Button
+
+            <button
+              className="bg-purple-600 text-white text-xs px-5 py-3 rounded-full"
               type="submit"
-              variant="contained"
-              color="secondary"
             >
               Add Category
-            </Button>
+            </button>
           </Box>
         </motion.div>
       </Box>

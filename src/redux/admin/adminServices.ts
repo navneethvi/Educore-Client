@@ -122,11 +122,32 @@ const deleteCategoryService = async (
   }
 };
 
+const toggleBlockTutorService = async (
+  token: string,
+  tutorId: string
+): Promise<ApiResponse<any>> => {
+  try {
+    const response = await axios.patch(
+      `${BASE_URL}/auth/tutor/${tutorId}/block`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("response in service: ", response.data);
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || { message: "An error occurred" };
+  }
+};
+
 export {
   adminSigninService,
   getStudentsDataService,
   getTutorsDataService,
   getCategoriesDataService,
   addCategoryService,
-  deleteCategoryService
+  deleteCategoryService,
+  toggleBlockTutorService
 };

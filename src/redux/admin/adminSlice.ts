@@ -7,6 +7,7 @@ import {
   fetchCategories,
   fetchStudents,
   fetchTutors,
+  toggleBlockTutor,
 } from "./adminActions";
 import { ApiResponse } from "../../types/types";
 import { number } from "yup";
@@ -24,7 +25,9 @@ interface Tutor {
   name: string;
   email: string;
   phone: string;
-  activity: string;
+  followers: [];
+  is_verified: boolean;
+  is_blocked: boolean;
 }
 
 interface Category {
@@ -164,10 +167,13 @@ const adminSlice = createSlice({
         state.categories.data = action.payload.categories;
         state.categories.totalPages = action.payload.totalPages;
       })
-      .addCase(fetchCategories.rejected, (state, action: PayloadAction<any>) => {
-        state.categories.loading = false;
-        state.categories.error = action.payload || "Failed to fetch students";
-      })
+      .addCase(
+        fetchCategories.rejected,
+        (state, action: PayloadAction<any>) => {
+          state.categories.loading = false;
+          state.categories.error = action.payload || "Failed to fetch students";
+        }
+      )
 
       .addCase(addCategory.pending, (state) => {
         state.categories.loading = true;
@@ -191,6 +197,23 @@ const adminSlice = createSlice({
       .addCase(deleteCategory.rejected, (state, action: PayloadAction<any>) => {
         state.categories.loading = false;
         state.categories.error = action.payload || "Failed to Delete Category";
+      })
+
+      .addCase(toggleBlockTutor.pending, (state) => {
+        state.loading = true;
+        state.error = "";
+      })
+      .addCase(toggleBlockTutor.fulfilled, (state, action: any) => {
+        state.loading = false;
+        const updatedTutor = action.payload;
+
+        state.tutors.data = state.tutors.data.map((tutor) =>
+          tutor._id === updatedTutor._id ? updatedTutor : tutor
+        );
+      })
+      .addCase(toggleBlockTutor.rejected, (state, action: PayloadAction<any>) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to Delete Category";
       });
   },
 });

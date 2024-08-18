@@ -12,10 +12,14 @@ import Alert from "@mui/material/Alert";
 import Pagination from "@mui/material/Pagination";
 import Stack from "@mui/material/Stack";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchTutors } from "../../../../redux/admin/adminActions";
+import {
+  fetchTutors,
+  toggleBlockTutor,
+} from "../../../../redux/admin/adminActions";
 import { AppDispatch, RootState } from "../../../../store/store";
-import { TableBody, CircularProgress } from "@mui/material";
+import { TableBody, CircularProgress, Box } from "@mui/material";
 import { motion } from "framer-motion";
+import Swal from "sweetalert2";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -44,7 +48,6 @@ const Tutors: React.FC = () => {
   } = useSelector((state: RootState) => state.admin);
 
   const [page, setPage] = useState(1);
-  const [loadingPage, setLoadingPage] = useState(false);
 
   useEffect(() => {
     if (adminToken) {
@@ -57,12 +60,38 @@ const Tutors: React.FC = () => {
     value: number
   ) => {
     setPage(value);
-    setLoadingPage(true);
+  };
 
-    // Reset loadingPage after 1 second
-    setTimeout(() => {
-      setLoadingPage(false);
-    }, 1500);
+  const handleBlockUnblock = (
+    tutorId: string,
+    token: string,
+    isBlocked: boolean
+  ) => {
+    Swal.fire({
+      title: `Are you sure you want to ${
+        isBlocked ? "unblock" : "block"
+      } this tutor?`,
+      text: "This action can be reversed at any time.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: isBlocked ? "#3085d6" : "#d33",
+      cancelButtonColor: "#bbb",
+      confirmButtonText: isBlocked ? "Yes, unblock them!" : "Yes, block them!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(toggleBlockTutor({ token, tutorId }));
+
+        setTimeout(() => {
+          dispatch(fetchTutors({ token, page }));
+        }, 500);
+
+        Swal.fire(
+          isBlocked ? "Unblocked!" : "Blocked!",
+          `The tutor has been ${isBlocked ? "unblocked" : "blocked"}.`,
+          "success"
+        );
+      }
+    });
   };
 
   return (
@@ -89,31 +118,68 @@ const Tutors: React.FC = () => {
                   <TableHead>
                     <TableRow>
                       <StyledTableCell>Name</StyledTableCell>
-                      <StyledTableCell align="left">Email</StyledTableCell>
-                      <StyledTableCell align="left">Phone</StyledTableCell>
-                      <StyledTableCell align="left">Activity</StyledTableCell>
-                      <StyledTableCell align="left">Manage</StyledTableCell>
+                      <StyledTableCell align="center">Email</StyledTableCell>
+                      <StyledTableCell align="center">Phone</StyledTableCell>
+                      <StyledTableCell align="center">
+                        Followers
+                      </StyledTableCell>
+                      <StyledTableCell align="center">Status</StyledTableCell>
+                      <StyledTableCell align="center">Manage</StyledTableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {tutors.map((student) => (
-                      <StyledTableRow key={student._id}>
-                        <StyledTableCell component="th" scope="row">
-                          {student.name}
+                    {tutors.map((tutor) => (
+                      <StyledTableRow key={tutor._id}>
+                        <StyledTableCell>{tutor.name}</StyledTableCell>
+                        <StyledTableCell align="center">
+                          {tutor.email}
                         </StyledTableCell>
-                        <StyledTableCell align="left">
-                          {student.email}
+                        <StyledTableCell align="center">
+                          {tutor.phone}
                         </StyledTableCell>
-                        <StyledTableCell align="left">
-                          {student.phone}
+                        <StyledTableCell align="center">
+                          {tutor.followers.length}
                         </StyledTableCell>
-                        <StyledTableCell align="left">
-                          {student.activity || "Active"}
+                        <StyledTableCell align="center">
+                          {tutor.is_verified ? (
+                            <span className="inline-flex items-center bg-green-500 text-white text-xs px-5 py-1.5 rounded-full">
+                              Verified
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center bg-gray-500 text-white text-xs px-2 py-1.5 rounded-full">
+                              Not Verified
+                            </span>
+                          )}
                         </StyledTableCell>
-                        <StyledTableCell align="left">
-                          <Button variant="contained" color="secondary">
-                            Block
-                          </Button>
+                        <StyledTableCell align="center">
+                          {tutor.is_blocked ? (
+
+                            <button
+                              className="bg-purple-600 text-white text-xs px-5 py-2 rounded-full"
+                              onClick={() =>
+                                handleBlockUnblock(
+                                  tutor._id,
+                                  adminToken as string,
+                                  true
+                                )
+                              }
+                            >
+                              Unblock
+                            </button>
+                          ) : (
+                            <button
+                              className="bg-red-600 text-white text-xs px-6 py-2 rounded-full"
+                              onClick={() =>
+                                handleBlockUnblock(
+                                  tutor._id,
+                                  adminToken as string,
+                                  false
+                                )
+                              }
+                            >
+                              Block
+                            </button>
+                          )}
                         </StyledTableCell>
                       </StyledTableRow>
                     ))}
@@ -132,16 +198,6 @@ const Tutors: React.FC = () => {
                 />
               </Stack>
             </div>
-
-            {loadingPage && (
-              <motion.div
-                className="flex justify-center mt-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                style={{ minHeight: "64px" }}
-              ></motion.div>
-            )}
           </>
         ) : (
           <Alert severity="info">No tutors available</Alert>

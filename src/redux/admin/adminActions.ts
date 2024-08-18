@@ -7,6 +7,7 @@ import {
   getCategoriesDataService,
   getStudentsDataService,
   getTutorsDataService,
+  toggleBlockTutorService,
 } from "./adminServices";
 
 import { SigninData, AdminResponse, ApiResponse } from "../../types/types";
@@ -106,6 +107,23 @@ export const deleteCategory = createAsyncThunk<
 >("deleteCategory", async ({ token, category_id }, thunkAPI) => {
   try {
     const response = await deleteCategoryService(token, category_id);
+    return response;
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue(
+      error.message || error.response?.data?.error || "An error occurred"
+    );
+  }
+});
+
+export const toggleBlockTutor = createAsyncThunk<
+  ApiResponse<any>,
+  { token: string; tutorId: string },
+  {
+    rejectValue: string;
+  }
+>("toggleBlockTutor", async ({ token, tutorId }, thunkAPI) => {
+  try {
+    const response = await toggleBlockTutorService(token, tutorId);
     return response;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(
