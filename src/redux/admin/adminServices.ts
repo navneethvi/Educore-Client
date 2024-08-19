@@ -16,13 +16,14 @@ const adminSigninService = async (data: SigninData) => {
 
 const getStudentsDataService = async (
   token: string,
-  page: number
+  page: number,
+  searchTerm: string
 ): Promise<ApiResponse<any>> => {
   try {
     console.log("page in service ==>", page);
 
     const response = await axios.get(
-      `${BASE_URL}/auth/admin/get_students?page=${page}`,
+      `${BASE_URL}/auth/admin/get_students?page=${page}&searchTerm=${searchTerm}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -142,6 +143,23 @@ const toggleBlockTutorService = async (
   }
 };
 
+const toggleBlockStudentService = async (
+  token: string,
+  studentId: string
+): Promise<ApiResponse<any>> => {
+  try {
+    const response = await axios.patch(`${BASE_URL}/auth/${studentId}/block`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("response in service: ", response.data);
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || { message: "An error occurred" };
+  }
+};
+
 export {
   adminSigninService,
   getStudentsDataService,
@@ -149,5 +167,6 @@ export {
   getCategoriesDataService,
   addCategoryService,
   deleteCategoryService,
-  toggleBlockTutorService
+  toggleBlockTutorService,
+  toggleBlockStudentService,
 };

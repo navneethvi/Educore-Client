@@ -7,6 +7,7 @@ import {
   fetchCategories,
   fetchStudents,
   fetchTutors,
+  toggleBlockStudent,
   toggleBlockTutor,
 } from "./adminActions";
 import { ApiResponse } from "../../types/types";
@@ -18,6 +19,8 @@ interface Student {
   email: string;
   phone: string;
   activity: string;
+  following: [];
+  is_blocked: boolean;
 }
 
 interface Tutor {
@@ -211,10 +214,33 @@ const adminSlice = createSlice({
           tutor._id === updatedTutor._id ? updatedTutor : tutor
         );
       })
-      .addCase(toggleBlockTutor.rejected, (state, action: PayloadAction<any>) => {
+      .addCase(
+        toggleBlockTutor.rejected,
+        (state, action: PayloadAction<any>) => {
+          state.loading = false;
+          state.error = action.payload || "Failed to Delete Category";
+        }
+      )
+
+      .addCase(toggleBlockStudent.pending, (state) => {
+        state.loading = true;
+        state.error = "";
+      })
+      .addCase(toggleBlockStudent.fulfilled, (state, action: any) => {
         state.loading = false;
-        state.error = action.payload || "Failed to Delete Category";
-      });
+        const updatedStudent = action.payload;
+
+        state.tutors.data = state.tutors.data.map((student) =>
+          student._id === updatedStudent._id ? updatedStudent : student
+        );
+      })
+      .addCase(
+        toggleBlockStudent.rejected,
+        (state, action: PayloadAction<any>) => {
+          state.loading = false;
+          state.error = action.payload || "Failed to Delete Category";
+        }
+      );
   },
 });
 

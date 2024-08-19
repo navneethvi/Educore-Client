@@ -12,10 +12,21 @@ import Alert from "@mui/material/Alert";
 import Pagination from "@mui/material/Pagination";
 import Stack from "@mui/material/Stack";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchStudents } from "../../../../redux/admin/adminActions";
+import {
+  fetchStudents,
+  toggleBlockStudent,
+} from "../../../../redux/admin/adminActions";
 import { AppDispatch, RootState } from "../../../../store/store";
-import { TableBody, CircularProgress } from "@mui/material";
+import {
+  TableBody,
+  CircularProgress,
+  InputBase,
+  IconButton,
+} from "@mui/material";
 import { motion } from "framer-motion";
+import Swal from "sweetalert2";
+import SearchIcon from "@mui/icons-material/Search";
+import _ from "lodash";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -38,19 +49,40 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 const Students: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
- const {
-  students: { data: students, loading, error, totalPages },
-  adminToken,
-} = useSelector((state: RootState) => state.admin);
+  const {
+    students: { data: students, loading, error, totalPages },
+    adminToken,
+  } = useSelector((state: RootState) => state.admin);
 
   const [page, setPage] = useState(1);
   const [loadingPage, setLoadingPage] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  const debouncedSearch = React.useCallback(
+    _.debounce((value: string) => {
+      setDebouncedSearchTerm(value);
+    }, 1000),
+    []
+  );
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setPage(1);
+    debouncedSearch(value);
+  };
 
   useEffect(() => {
-    if (adminToken) {
-      dispatch(fetchStudents({ token: adminToken, page }));
-    }
-  }, [dispatch, adminToken, page]);
+    if (!adminToken) return;
+    dispatch(
+      fetchStudents({
+        token: adminToken,
+        page,
+        searchTerm: debouncedSearchTerm,
+      })
+    );
+  }, [dispatch, adminToken, page, debouncedSearchTerm]);
 
   const handlePageChange = (
     event: React.ChangeEvent<unknown>,
@@ -59,10 +91,51 @@ const Students: React.FC = () => {
     setPage(value);
     setLoadingPage(true);
 
-    // Reset loadingPage after 1 second
+    dispatch(
+      fetchStudents({
+        token: adminToken as string,
+        page: value,
+        searchTerm: debouncedSearchTerm,
+      })
+    );
+
     setTimeout(() => {
       setLoadingPage(false);
     }, 1500);
+  };
+
+  const handleBlockUnblock = (
+    studentId: string,
+    token: string,
+    isBlocked: boolean
+  ) => {
+    Swal.fire({
+      title: `Are you sure you want to ${
+        isBlocked ? "unblock" : "block"
+      } this student?`,
+      text: "This action can be reversed at any time.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: isBlocked ? "#3085d6" : "#d33",
+      cancelButtonColor: "#bbb",
+      confirmButtonText: isBlocked ? "Yes, unblock them!" : "Yes, block them!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(toggleBlockStudent({ token, studentId }));
+
+        setTimeout(() => {
+          dispatch(
+            fetchStudents({ token, page, searchTerm: debouncedSearchTerm })
+          );
+        }, 500);
+
+        Swal.fire(
+          isBlocked ? "Unblocked!" : "Blocked!",
+          `The student has been ${isBlocked ? "unblocked" : "blocked"}.`,
+          "success"
+        );
+      }
+    });
   };
 
   return (
@@ -71,6 +144,34 @@ const Students: React.FC = () => {
         <h1 className="text-2xl font-semibold">Students</h1>
       </div>
       <div className="w-full px-4">
+        {/* Search Bar */}
+        <Paper
+          component="form"
+          sx={{
+            p: "2px 4px",
+            display: "flex",
+            alignItems: "center",
+            width: 400,
+            maxWidth: 600,
+            margin: "0 auto",
+            marginBottom: 2,
+            border: 1,
+            borderRadius: 10,
+            borderColor: "#808999"
+          }}
+        >
+          <InputBase
+            sx={{ ml: 2, flex: 1 }}
+            placeholder="Search Students"
+            inputProps={{ "aria-label": "search students" }}
+            value={searchTerm}
+            onChange={handleSearchChange}
+          />
+          <IconButton type="button" sx={{ p: "10px" }} aria-label="search">
+            <SearchIcon />
+          </IconButton>
+        </Paper>
+
         {loading && (
           <div className="flex justify-center items-center h-[300px]">
             <CircularProgress />
@@ -82,17 +183,25 @@ const Students: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
             >
-              <TableContainer component={Paper} className="w-full">
+              <TableContainer
+                component={Paper}
+                className="w-full"
+                style={{ maxHeight: "500px", overflowY: "auto" }}
+              >
                 <Table aria-label="customized table">
                   <TableHead>
                     <TableRow>
                       <StyledTableCell>Name</StyledTableCell>
-                      <StyledTableCell align="left">Email</StyledTableCell>
-                      <StyledTableCell align="left">Phone</StyledTableCell>
-                      <StyledTableCell align="left">Activity</StyledTableCell>
-                      <StyledTableCell align="left">Manage</StyledTableCell>
+                      <StyledTableCell align="center">Email</StyledTableCell>
+                      <StyledTableCell align="center">Phone</StyledTableCell>
+                      <StyledTableCell align="center">
+                        Following
+                      </StyledTableCell>
+                      <StyledTableCell align="center">Activity</StyledTableCell>
+                      <StyledTableCell align="center">Manage</StyledTableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -101,19 +210,46 @@ const Students: React.FC = () => {
                         <StyledTableCell component="th" scope="row">
                           {student.name}
                         </StyledTableCell>
-                        <StyledTableCell align="left">
+                        <StyledTableCell align="center">
                           {student.email}
                         </StyledTableCell>
-                        <StyledTableCell align="left">
+                        <StyledTableCell align="center">
                           {student.phone}
                         </StyledTableCell>
-                        <StyledTableCell align="left">
+                        <StyledTableCell align="center">
+                          {student.following.length}
+                        </StyledTableCell>
+                        <StyledTableCell align="center">
                           {student.activity || "Active"}
                         </StyledTableCell>
-                        <StyledTableCell align="left">
-                          <Button variant="contained" color="secondary">
-                            Block
-                          </Button>
+                        <StyledTableCell align="center">
+                          {student.is_blocked ? (
+                            <button
+                              className="bg-purple-600 text-white text-xs px-5 py-2 rounded-full"
+                              onClick={() =>
+                                handleBlockUnblock(
+                                  student._id,
+                                  adminToken as string,
+                                  true
+                                )
+                              }
+                            >
+                              Unblock
+                            </button>
+                          ) : (
+                            <button
+                              className="bg-red-600 text-white text-xs px-6 py-2 rounded-full"
+                              onClick={() =>
+                                handleBlockUnblock(
+                                  student._id,
+                                  adminToken as string,
+                                  false
+                                )
+                              }
+                            >
+                              Block
+                            </button>
+                          )}
                         </StyledTableCell>
                       </StyledTableRow>
                     ))}
@@ -122,7 +258,7 @@ const Students: React.FC = () => {
               </TableContainer>
             </motion.div>
 
-            <div className="pagination flex justify-center mt-10">
+            <div className="pagination flex justify-center mt-2">
               <Stack spacing={2} mt={2}>
                 <Pagination
                   count={totalPages}
@@ -139,9 +275,8 @@ const Students: React.FC = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
-                style={{ minHeight: '64px' }} 
-              >
-              </motion.div>
+                style={{ minHeight: "34px" }}
+              ></motion.div>
             )}
           </>
         ) : (
