@@ -39,13 +39,14 @@ const getStudentsDataService = async (
 
 const getTutorsDataService = async (
   token: string,
-  page: number
+  page: number,
+  searchTerm: string
 ): Promise<ApiResponse<any>> => {
   try {
     console.log("page in service ==>", page);
 
     const response = await axios.get(
-      `${BASE_URL}/auth/admin/get_tutors?page=${page}`,
+      `${BASE_URL}/auth/admin/get_tutors?page=${page}&searchTerm=${searchTerm}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

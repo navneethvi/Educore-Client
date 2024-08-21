@@ -51,13 +51,13 @@ export const fetchStudents = createAsyncThunk<
 
 export const fetchTutors = createAsyncThunk<
   ApiResponse<any>,
-  { token: string; page: number },
+  { token: string; page: number, searchTerm: string },
   {
     rejectValue: string;
   }
->("fetchTutors", async ({ token, page }, thunkAPI) => {
+>("fetchTutors", async ({ token, page, searchTerm }, thunkAPI) => {
   try {
-    const response = await getTutorsDataService(token, page);
+    const response = await getTutorsDataService(token, page, searchTerm);
     return response;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(

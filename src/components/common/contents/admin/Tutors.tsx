@@ -7,19 +7,26 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
 import Pagination from "@mui/material/Pagination";
 import Stack from "@mui/material/Stack";
+import _ from "lodash";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchTutors,
   toggleBlockTutor,
 } from "../../../../redux/admin/adminActions";
 import { AppDispatch, RootState } from "../../../../store/store";
-import { TableBody, CircularProgress, Box } from "@mui/material";
+import {
+  TableBody,
+  CircularProgress,
+  Box,
+  InputBase,
+  IconButton,
+} from "@mui/material";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
+import SearchIcon from "@mui/icons-material/Search";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -48,12 +55,32 @@ const Tutors: React.FC = () => {
   } = useSelector((state: RootState) => state.admin);
 
   const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  const debouncedSearch = React.useCallback(
+    _.debounce((value: string) => {
+      setDebouncedSearchTerm(value);
+    }, 1000),
+    []
+  );
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+    debouncedSearch(event.target.value);
+  };
 
   useEffect(() => {
     if (adminToken) {
-      dispatch(fetchTutors({ token: adminToken, page }));
+      dispatch(
+        fetchTutors({
+          token: adminToken,
+          page,
+          searchTerm: debouncedSearchTerm,
+        })
+      );
     }
-  }, [dispatch, adminToken, page]);
+  }, [dispatch, adminToken, page, debouncedSearchTerm]);
 
   const handlePageChange = (
     event: React.ChangeEvent<unknown>,
@@ -82,7 +109,9 @@ const Tutors: React.FC = () => {
         dispatch(toggleBlockTutor({ token, tutorId }));
 
         setTimeout(() => {
-          dispatch(fetchTutors({ token, page }));
+          dispatch(
+            fetchTutors({ token, page, searchTerm: debouncedSearchTerm })
+          );
         }, 500);
 
         Swal.fire(
@@ -100,6 +129,33 @@ const Tutors: React.FC = () => {
         <h1 className="text-2xl font-semibold">Tutors</h1>
       </div>
       <div className="w-full px-4">
+        <Paper
+          component="form"
+          sx={{
+            p: "2px 4px",
+            display: "flex",
+            alignItems: "center",
+            width: 400,
+            maxWidth: 600,
+            margin: "0 auto",
+            marginBottom: 2,
+            border: 1,
+            borderRadius: 10,
+            borderColor: "#808999",
+          }}
+        >
+          <InputBase
+            sx={{ ml: 2, flex: 1 }}
+            placeholder="Search Tutors"
+            inputProps={{ "aria-label": "search tutors" }}
+            value={searchTerm}
+            onChange={handleSearchChange}
+          />
+          <IconButton type="button" sx={{ p: "10px" }} aria-label="search">
+            <SearchIcon />
+          </IconButton>
+        </Paper>
+
         {loading && (
           <div className="flex justify-center items-center h-[300px]">
             <CircularProgress />
@@ -153,29 +209,30 @@ const Tutors: React.FC = () => {
                         </StyledTableCell>
                         <StyledTableCell align="center">
                           {tutor.is_blocked ? (
-
                             <button
                               className="bg-purple-600 text-white text-xs px-5 py-2 rounded-full"
-                              onClick={() =>
+                              onClick={(e) => {
+                                e.preventDefault();
                                 handleBlockUnblock(
                                   tutor._id,
                                   adminToken as string,
                                   true
-                                )
-                              }
+                                );
+                              }}
                             >
                               Unblock
                             </button>
                           ) : (
                             <button
                               className="bg-red-600 text-white text-xs px-6 py-2 rounded-full"
-                              onClick={() =>
+                              onClick={(e) => {
+                                e.preventDefault();
                                 handleBlockUnblock(
                                   tutor._id,
                                   adminToken as string,
                                   false
-                                )
-                              }
+                                );
+                              }}
                             >
                               Block
                             </button>
