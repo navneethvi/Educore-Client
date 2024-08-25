@@ -144,6 +144,29 @@ const tutorLogoutService = async (token: string) => {
   }
 };
 
+const tutorCreateCourseService = async (token: string, courseData : any) => {
+  try {
+    console.log(token);
+    console.log("in service ====>",courseData);
+    
+    const response = await axios.post(
+      `${BASE_URL}/course/add_course`,
+      courseData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    console.log(response);
+    
+    return response;
+  } catch (error : any) {
+    throw error.response;
+  }
+};
+
 export {
   tutorSignupService,
   tutorVerifyEmailService,
@@ -153,5 +176,6 @@ export {
   verifyTutorAccountService,
   tutorResetPassService,
   tutorGoogleSigninService,
-  tutorLogoutService
+  tutorLogoutService,
+  tutorCreateCourseService
 };

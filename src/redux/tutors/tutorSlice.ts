@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import Swal from "sweetalert2";
 
 import {
   tutorSignup,
@@ -9,7 +10,8 @@ import {
   verifyTutorAccount,
   tutorResetPass,
   tutorGoogleSignin,
-  tutorLogout
+  tutorLogout,
+  tutorCreateCourse
 } from "./tutorActions";
 
 interface TutorData {
@@ -211,6 +213,31 @@ const tutorSlice = createSlice({
       .addCase(tutorLogout.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Logout failed";
+      })
+
+      .addCase(tutorCreateCourse.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(tutorCreateCourse.fulfilled, (state) => {
+        // state.tutorData = null;
+        // state.tutorToken = null;
+        state.loading = false;
+        Swal.fire({
+          title: "Course Uploaded!",
+          text: "Your course has been successfully uploaded.",
+          icon: "success",
+          confirmButtonText: "OK",
+        });
+      })
+      .addCase(tutorCreateCourse.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Course creation failed";
+        Swal.fire({
+          title: "Error!",
+          text: state.error,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
       });
   },
 });

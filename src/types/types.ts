@@ -73,3 +73,22 @@ export interface TutorResetPassData {
   newPassword: string;
   confirmNewPassword: string;
 }
+
+
+interface Lesson {
+  title: string;
+  goal: string;
+  video?: string;
+  materials?: string;
+  homework?: string;
+}
+
+export interface CourseData {
+  title: string;
+  description: string;
+  category: string;
+  level: string;
+  price: number;
+
+  lessons: Lesson[];
+}
