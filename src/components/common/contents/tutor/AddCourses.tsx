@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -22,9 +22,12 @@ import Cropper, { ReactCropperElement } from "react-cropper";
 import "cropperjs/dist/cropper.css";
 import { Formik, Field, Form, FieldArray } from "formik";
 import * as Yup from "yup";
+import Swal from "sweetalert2";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../../store/store";
 import { tutorCreateCourse } from "../../../../redux/tutors/tutorActions";
+import { useNavigate } from "react-router-dom";
+import { resetActions } from "../../../../redux/tutors/tutorSlice";
 
 const validationSchema = Yup.object({
   title: Yup.string().required("Title is required"),
@@ -55,8 +58,10 @@ const AddCourses: React.FC = () => {
 
   const cropperRef = useRef<ReactCropperElement>(null);
 
+  const navigate = useNavigate();
+
   const dispatch: AppDispatch = useDispatch();
-  const { tutorToken, loading } = useSelector(
+  const { tutorToken, loading, success } = useSelector(
     (state: RootState) => state.tutor
   );
 
@@ -83,6 +88,21 @@ const AddCourses: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (success) {
+      Swal.fire({
+        title: "Course Uploaded!",
+        text: "Your course has been successfully uploaded.",
+        icon: "success",
+        confirmButtonText: "OK",
+      }).then(() => {
+        navigate("/tutor/courses");
+        dispatch(resetActions());
+      });
+    }
+  }, [success, navigate, dispatch]);
+  
+
   const handleSubmit = async (values: any) => {
     const formData = new FormData();
 
@@ -92,10 +112,6 @@ const AddCourses: React.FC = () => {
     formData.append("level", values.level);
     formData.append("price", values.price);
 
-    // if (croppedThumbnail) {
-    //   const croppedBlob = await (await fetch(croppedThumbnail)).blob();
-    //   formData.append("thumbnail", croppedBlob, "thumbnail.png");
-    // }
 
     values.lessons.forEach((lesson: any, index: number) => {
       formData.append(`lessons[${index}][title]`, lesson.title);
@@ -111,10 +127,8 @@ const AddCourses: React.FC = () => {
       }
     });
 
-    // Get the file inputs
     const fileInputs = document.querySelectorAll('input[type="file"]');
 
-    // Append the files to the form data
     fileInputs.forEach((input: any) => {
       const files = input.files;
       if (files.length > 0) {
@@ -122,7 +136,7 @@ const AddCourses: React.FC = () => {
       }
     });
 
-    dispatch(
+    await dispatch(
       tutorCreateCourse({ token: tutorToken as string, courseData: formData })
     );
   };
@@ -556,3 +570,7 @@ const AddCourses: React.FC = () => {
 };
 
 export default AddCourses;
+function resetForm() {
+  throw new Error("Function not implemented.");
+}
+

@@ -219,15 +219,8 @@ const tutorSlice = createSlice({
         state.loading = true;
       })
       .addCase(tutorCreateCourse.fulfilled, (state) => {
-        // state.tutorData = null;
-        // state.tutorToken = null;
+        state.success = true
         state.loading = false;
-        Swal.fire({
-          title: "Course Uploaded!",
-          text: "Your course has been successfully uploaded.",
-          icon: "success",
-          confirmButtonText: "OK",
-        });
       })
       .addCase(tutorCreateCourse.rejected, (state, action) => {
         state.loading = false;
