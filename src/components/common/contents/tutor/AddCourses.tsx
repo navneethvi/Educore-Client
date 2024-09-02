@@ -28,33 +28,12 @@ import { AppDispatch, RootState } from "../../../../store/store";
 import { tutorCreateCourse } from "../../../../redux/tutors/tutorActions";
 import { useNavigate } from "react-router-dom";
 import { resetActions } from "../../../../redux/tutors/tutorSlice";
-
-const validationSchema = Yup.object({
-  title: Yup.string().required("Title is required"),
-  description: Yup.string().required("Description is required"),
-  category: Yup.string().required("Category is required"),
-  level: Yup.string().required("Level is required"),
-  price: Yup.number()
-    .required("Price is required")
-    .positive("Price must be positive"),
-  lessons: Yup.array()
-    .of(
-      Yup.object({
-        title: Yup.string().required("Lesson title is required"),
-        goal: Yup.string().required("Lesson goal is required"),
-        video: Yup.string(),
-        materials: Yup.string(),
-        homework: Yup.string(),
-      })
-    )
-    .min(1, "At least one lesson is required"),
-});
+import { courseValidationSchema } from "../../../../validations/courseValidation";
 
 const AddCourses: React.FC = () => {
   const [thumbnail, setThumbnail] = useState<string>("");
   const [croppedThumbnail, setCroppedThumbnail] = useState<string>("");
   const [open, setOpen] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   const cropperRef = useRef<ReactCropperElement>(null);
 
@@ -143,7 +122,9 @@ const AddCourses: React.FC = () => {
 
   return (
     <>
-      <h1>Add Course</h1>
+       <div className="heading">
+        <h1 className="text-2xl font-semibold">Add Courses</h1>
+      </div>
 
       {loading && (
         <motion.div
@@ -213,7 +194,7 @@ const AddCourses: React.FC = () => {
             { title: "", goal: "", video: "", materials: "", homework: "" },
           ],
         }}
-        validationSchema={validationSchema}
+        validationSchema={courseValidationSchema}
         onSubmit={handleSubmit}
       >
         {({ setFieldValue, values }) => (
@@ -228,7 +209,7 @@ const AddCourses: React.FC = () => {
                       label="Title"
                       type="text"
                       fullWidth
-                      sx={{ mb: 3, mt: 4 }}
+                      sx={{ mb: 3, mt: 2 }}
                       variant="outlined"
                     />
                     <Field
@@ -351,7 +332,7 @@ const AddCourses: React.FC = () => {
                               }}
                             >
                               <IconButton
-                                sx={{ position: "absolute", top: 8, right: 8 }}
+                                sx={{ position: "absolute", top: 21, right: 8 }}
                                 onClick={() => arrayHelpers.remove(index)}
                               >
                                 <Delete />

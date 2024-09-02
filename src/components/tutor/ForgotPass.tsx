@@ -11,6 +11,7 @@ import {
   forgotTutorPass,
   verifyTutorAccount,
 } from "../../redux/tutors/tutorActions";
+import { validateEmail } from "../../validations/emailValidation";
 
 
 
@@ -64,10 +65,7 @@ const ForgotPass: React.FC = () => {
       (event.currentTarget.previousSibling as HTMLInputElement).focus();    }
   };
 
-  const validateEmail = (email: string) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(String(email).toLowerCase());
-  };
+
 
   const handleEmailSubmit = () => {
     if (!validateEmail(email)) {

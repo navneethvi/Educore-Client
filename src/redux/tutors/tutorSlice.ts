@@ -15,6 +15,7 @@ import {
 } from "./tutorActions";
 
 interface TutorData {
+  _id : string
   name: string;
   image: string;
   token: string;

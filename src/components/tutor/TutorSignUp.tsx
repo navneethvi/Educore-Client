@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useDispatch, useSelector } from "react-redux";
 import { tutorSignup } from "../../redux/tutors/tutorActions";
 import { resetActions } from "../../redux/tutors/tutorSlice";
+import { tutorSignUpValidationSchema } from "../../validations/tutorValidation";
 
 import { RootState, AppDispatch } from "../../store/store";
 
@@ -20,13 +21,13 @@ interface FormValues {
 }
 
 const TutorSignUp: React.FC = () => {
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState("");
   const navigate = useNavigate();
   const dispatch: AppDispatch = useDispatch();
-  const { loading, success, error, message } = useSelector((state: RootState) => state.tutor);
+  const { loading, success, error, message } = useSelector(
+    (state: RootState) => state.tutor
+  );
 
-  
-  
   const formik = useFormik<FormValues>({
     initialValues: {
       name: "",
@@ -36,37 +37,24 @@ const TutorSignUp: React.FC = () => {
       confirmPassword: "",
       role: "tutor",
     },
-    validationSchema: Yup.object({
-      name: Yup.string()
-        .min(3, "Name must be between 3 and 20 characters.")
-        .max(20, "Name must be between 3 and 20 characters.")
-        .required("Name is required"),
-      email: Yup.string()
-        .email("Invalid email address")
-        .required("Email is required"),
-      phone: Yup.string()
-        .matches(/^[6-9]\d{9}$/, "Please enter a valid phone number.")
-        .required("Phone number is required."),
-      password: Yup.string()
-        .min(8, "Password must be at least 8 characters long")
-        .required("Password is required"),
-      confirmPassword: Yup.string()
-        .oneOf([Yup.ref("password")], "Passwords must match")
-        .required("Confirm password is required"),
-    }),
-    onSubmit: (values: FormValues, formikHelpers: FormikHelpers<FormValues>) => {
+    validationSchema: tutorSignUpValidationSchema,
+    onSubmit: (
+      values: FormValues,
+      formikHelpers: FormikHelpers<FormValues>
+    ) => {
       setEmail(values.email);
-      dispatch(tutorSignup({
-        name: values.name,
-        email: values.email,
-        phone: values.phone,
-        password: values.password,
-        confirmPassword: values.confirmPassword,
-        role: "tutor",
-      }));
+      dispatch(
+        tutorSignup({
+          name: values.name,
+          email: values.email,
+          phone: values.phone,
+          password: values.password,
+          confirmPassword: values.confirmPassword,
+          role: "tutor",
+        })
+      );
     },
   });
-  
 
   useEffect(() => {
     if (success) {
@@ -110,10 +98,12 @@ const TutorSignUp: React.FC = () => {
                 className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
               />
               {formik.touched.name && formik.errors.name ? (
-                <p className="text-red-500 text-sm mt-1">{formik.errors.name}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {formik.errors.name}
+                </p>
               ) : null}
             </div>
-  
+
             <div className="relative mb-4">
               <label
                 htmlFor="email"
@@ -128,10 +118,12 @@ const TutorSignUp: React.FC = () => {
                 className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
               />
               {formik.touched.email && formik.errors.email ? (
-                <p className="text-red-500 text-sm mt-1">{formik.errors.email}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {formik.errors.email}
+                </p>
               ) : null}
             </div>
-  
+
             <div className="relative mb-4">
               <label
                 htmlFor="phone"
@@ -146,10 +138,12 @@ const TutorSignUp: React.FC = () => {
                 className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
               />
               {formik.touched.phone && formik.errors.phone ? (
-                <p className="text-red-500 text-sm mt-1">{formik.errors.phone}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {formik.errors.phone}
+                </p>
               ) : null}
             </div>
-  
+
             <div className="relative mb-4">
               <label
                 htmlFor="password"
@@ -164,10 +158,12 @@ const TutorSignUp: React.FC = () => {
                 className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
               />
               {formik.touched.password && formik.errors.password ? (
-                <p className="text-red-500 text-sm mt-1">{formik.errors.password}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {formik.errors.password}
+                </p>
               ) : null}
             </div>
-  
+
             <div className="relative mb-4">
               <label
                 htmlFor="confirmPassword"
@@ -181,11 +177,14 @@ const TutorSignUp: React.FC = () => {
                 {...formik.getFieldProps("confirmPassword")}
                 className="block w-full py-2 px-3 border border-gray-500 rounded-lg bg-gray-50 text-gray-800 font-reem-kufi focus:ring-blue-500 focus:border-blue-500"
               />
-              {formik.touched.confirmPassword && formik.errors.confirmPassword ? (
-                <p className="text-red-500 text-sm mt-1">{formik.errors.confirmPassword}</p>
+              {formik.touched.confirmPassword &&
+              formik.errors.confirmPassword ? (
+                <p className="text-red-500 text-sm mt-1">
+                  {formik.errors.confirmPassword}
+                </p>
               ) : null}
             </div>
-  
+
             <button
               type="submit"
               className="bg-gradient-to-r from-blue-500 to-blue-800 h-12 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-500 w-full mb-4"
@@ -194,15 +193,15 @@ const TutorSignUp: React.FC = () => {
               {loading ? "Signing Up..." : "Sign Up"}
             </button>
           </form>
-  
-          <div className="w-full flex justify-center">
-  <Link to={"/tutor/signin"}>
-    <h2 className="text-sm font-semibold font-reem-kufi text-center mt-6 text-gray-600 hover:text-blue-600 cursor-pointer">
-      Already have an account? <span className="text-blue-600">Sign In</span>
-    </h2>
-  </Link>
-</div>
 
+          <div className="w-full flex justify-center">
+            <Link to={"/tutor/signin"}>
+              <h2 className="text-sm font-semibold font-reem-kufi text-center mt-6 text-gray-600 hover:text-blue-600 cursor-pointer">
+                Already have an account?{" "}
+                <span className="text-blue-600">Sign In</span>
+              </h2>
+            </Link>
+          </div>
         </div>
         <div className="right hidden lg:flex w-full lg:w-1/2 items-center justify-center lg:h-full">
           <img
@@ -214,8 +213,6 @@ const TutorSignUp: React.FC = () => {
       </div>
     </>
   );
-  
-  
-}
+};
 
 export default TutorSignUp;

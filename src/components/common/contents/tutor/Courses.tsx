@@ -1,107 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CourseCard from "../../CourseCard";
+import { tutorFetchApprovedCourses } from "../../../../redux/tutors/tutorActions";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../../../store/store";
 
 const Courses: React.FC = () => {
-  // State to toggle between approved and pending courses
   const [showApproved, setShowApproved] = useState(true);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true); // Add loading state
 
-  // Example data for approved and pending courses
-  const approvedCourses = [
-    {
-      id: 1,
-      title: "Learning Javascript With Imagination",
-      category: "Development",
-      price: 2999,
-      originalPrice: 3999,
-      // tutor: "Navaneeth V",
-      // rating: 4.3,
-      lessons: 2,
-      duration: "2h 12m",
-      enrollments: 202,
-      thumbnail: "/src/assets/home-page/course-thumb.png",
-      tutorProfile: "/src/assets/home-page/tutor-profile.jpeg",
-    },
-    {
-      id: 1,
-      title: "Learning Javascript With Imagination",
-      category: "Development",
-      price: 2999,
-      originalPrice: 3999,
-      // tutor: "Navaneeth V",
-      // rating: 4.3,
-      lessons: 2,
-      duration: "2h 12m",
-      enrollments: 202,
-      thumbnail: "/src/assets/home-page/course-thumb.png",
-      tutorProfile: "/src/assets/home-page/tutor-profile.jpeg",
-    },
-    {
-      id: 1,
-      title: "Learning Javascript With Imagination",
-      category: "Development",
-      price: 2999,
-      originalPrice: 3999,
-      // tutor: "Navaneeth V",
-      // rating: 4.3,
-      lessons: 2,
-      duration: "2h 12m",
-      enrollments: 202,
-      thumbnail: "/src/assets/home-page/course-thumb.png",
-      tutorProfile: "/src/assets/home-page/tutor-profile.jpeg",
-    },
-    {
-      id: 1,
-      title: "Learning Javascript With Imagination",
-      category: "Development",
-      price: 2999,
-      originalPrice: 3999,
-      // tutor: "Navaneeth V",
-      // rating: 4.3,
-      lessons: 2,
-      duration: "2h 12m",
-      enrollments: 202,
-      thumbnail: "/src/assets/home-page/course-thumb.png",
-      tutorProfile: "/src/assets/home-page/tutor-profile.jpeg",
-    },
-    {
-      id: 1,
-      title: "Learning Javascript With Imagination",
-      category: "Development",
-      price: 2999,
-      originalPrice: 3999,
-      // tutor: "Navaneeth V",
-      // rating: 4.3,
-      lessons: 2,
-      duration: "2h 12m",
-      enrollments: 202,
-      thumbnail: "/src/assets/home-page/course-thumb.png",
-      tutorProfile: "/src/assets/home-page/tutor-profile.jpeg",
-    },
+  const dispatch: AppDispatch = useDispatch();
 
-    // Add more approved courses here
-  ];
+  const { tutorData, tutorToken } = useSelector(
+    (state: RootState) => state.tutor
+  );
 
-  const pendingCourses = [
-    {
-      id: 1,
-      title: "Pending Course Example",
-      category: "Design",
-      price: 1999,
-      originalPrice: 2999,
-      tutor: "John Doe",
-      rating: 4.0,
-      lessons: 3,
-      duration: "3h 10m",
-      enrollments: 150,
-      thumbnail: "/src/assets/home-page/course-thumb.png",
-      tutorProfile: "/src/assets/home-page/tutor-profile.jpeg",
-    },
-    // Add more pending courses here
-  ];
+  useEffect(() => {
+    const fetchCourses = async () => {
+      setLoading(true); // Set loading to true when fetching starts
+      const token = tutorToken as string;
+      const tutorId = tutorData?._id as string;
+      const response: any = await dispatch(
+        tutorFetchApprovedCourses({ token, tutorId })
+      );
+      setCourses(response.payload.data);
+      setLoading(false); // Set loading to false when data is fetched
+    };
+    fetchCourses();
+  }, [dispatch, tutorToken, tutorData]);
+
+  const handleCourseClick = (courseId: string) => {
+    console.log("Course ID:", courseId);
+  };
+
+  const filteredCourses = showApproved
+    ? courses.filter((course) => course.is_approved)
+    : courses.filter((course) => !course.is_approved);
 
   return (
     <>
-     <div className="heading mb-2">
+      <div className="heading mb-2">
         <h1 className="text-2xl font-semibold">My Courses</h1>
       </div>
       <div className="flex justify-end mb-6 mr-10">
@@ -113,14 +51,29 @@ const Courses: React.FC = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-        {showApproved
-          ? approvedCourses.map((course) => (
-              <CourseCard key={course.id} {...course} />
-            ))
-          : pendingCourses.map((course) => (
-              <CourseCard key={course.id} {...course} />
-            ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+        {filteredCourses.length > 0 ? (
+          filteredCourses.map((course) => (
+            <div key={course._id}>
+              <CourseCard
+                title={course.title}
+                category={course.category}
+                price={course.price}
+                originalPrice={course.originalPrice}
+                tutorName={tutorData?.name as string}
+                image={tutorData?.image as string}
+                thumbnail={course.thumbnail}
+                lessonsCount={course.lessons.length}
+                duration="2h 12m"
+                enrollments={course.enrollments}
+                courseId={course._id}
+                handleClick={handleCourseClick}
+              />
+            </div>
+          ))
+        ) : (
+          <p className="text-center col-span-4">No courses found.</p>
+        )}
       </div>
     </>
   );

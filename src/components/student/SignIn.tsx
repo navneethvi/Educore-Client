@@ -9,6 +9,9 @@ import { studentGoogleSignin, studentSignin } from "../../redux/students/student
 import { RootState, AppDispatch } from "../../store/store";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 
+import { validateEmail } from "../../validations/emailValidation";
+import { validatePassword } from "../../validations/resetPassValidation";
+
 import { motion } from "framer-motion";
 
 const SignIn: React.FC = () => {
@@ -41,7 +44,7 @@ const SignIn: React.FC = () => {
       toast.error("Invalid email format");
       return;
     }
-    if (password.length < 5) {
+    if (!validatePassword(password)) {
       toast.error("Password must be at least 5 characters long");
       return;
     }
@@ -49,14 +52,10 @@ const SignIn: React.FC = () => {
     dispatch(studentSignin({ email, password }));
   };
 
-  const validateEmail = (email: string) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(String(email).toLowerCase());
-  };
+
 
   const responseGoogle = (response: CredentialResponse) => {
     if (response.credential) {
-      // Send id_token to your server for verification
       dispatch(studentGoogleSignin({ token: response.credential }));
     } else {
       console.error('ID token is missing');

@@ -11,6 +11,7 @@ import {
   tutorGoogleSigninService,
   tutorLogoutService,
   tutorCreateCourseService,
+  tutorFetchApprovedCourseService,
 } from "./tutorServices";
 
 import {
@@ -160,6 +161,20 @@ export const tutorCreateCourse = createAsyncThunk<
   try {
     const response = await tutorCreateCourseService(token, courseData);
     console.log("in TutorCreateCourse===>", response);
+    return response;
+  } catch (error: any) {
+    return handleThunkError(error, thunkAPI);
+  }
+});
+
+export const tutorFetchApprovedCourses = createAsyncThunk<
+  any,
+  { token: string; tutorId: string },
+  { rejectValue: string }
+>("tutorFetchApprovedCourses", async ({ token, tutorId }, thunkAPI) => {
+  try {
+    const response = await tutorFetchApprovedCourseService(token, tutorId);
+    console.log("in TutorFetchApprovedCourses===>", response);
     return response;
   } catch (error: any) {
     return handleThunkError(error, thunkAPI);

@@ -14,6 +14,8 @@ import { tutorSignin } from "../../redux/tutors/tutorActions";
 import { tutorGoogleSignin } from "../../redux/tutors/tutorActions";
 
 import { RootState, AppDispatch } from "../../store/store";
+import { validateEmail } from "../../validations/emailValidation";
+import { validatePassword } from "../../validations/resetPassValidation";
 
 const TutorSignIn = () => {
   const [email, setEmail] = useState("");
@@ -45,18 +47,15 @@ const TutorSignIn = () => {
       toast.error("Invalid email format");
       return;
     }
-    if (password.length < 5) {
-      toast.error("Password must be at least 5 characters long");
+    if (!validatePassword(password)) {
+      toast.error("Password must be at least 8 characters long");
       return;
     }
 
     dispatch(tutorSignin({ email, password }));
   };
 
-  const validateEmail = (email: string) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(String(email).toLowerCase());
-  };
+
 
   const responseGoogle = (response: CredentialResponse) => {
     if (response.credential) {

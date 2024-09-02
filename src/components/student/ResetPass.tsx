@@ -6,6 +6,8 @@ import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
 import "sweetalert2/src/sweetalert2.scss";
 
+import { validatePassword, validatePasswordsMatch } from "../../validations/resetPassValidation";
+
 import { AppDispatch, RootState } from "../../store/store";
 
 import { studentResetPass } from "../../redux/students/studentActions";
@@ -59,13 +61,13 @@ const ResetPass: React.FC = () => {
   }, [success, error, message, navigate]);
 
   const handleUpdatePassword = async () => {
-    if (newPassword !== reNewPassword) {
+    if (!validatePasswordsMatch(newPassword, reNewPassword)) {
       toast.error("Passwords do not match");
       return;
     }
 
-    if (newPassword.length < 5) {
-      toast.error("Password must be at least 5 characters long");
+    if (!validatePassword(reNewPassword)) {
+      toast.error("Password must be at least 8 characters long");
       return;
     }
 

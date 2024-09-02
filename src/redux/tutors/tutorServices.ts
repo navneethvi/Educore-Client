@@ -1,4 +1,4 @@
-import axios from '../../utils/axios'
+import axios from "../../utils/axios";
 // import axios from "axios";
 
 import { BASE_URL } from "../../utils/configs";
@@ -128,7 +128,7 @@ const tutorResetPassService = async (
 const tutorLogoutService = async (token: string) => {
   try {
     console.log(token);
-    
+
     const response = await axios.post(
       `${BASE_URL}/auth/tutor/logout`,
       {},
@@ -139,16 +139,16 @@ const tutorLogoutService = async (token: string) => {
       }
     );
     return response.data;
-  } catch (error : any) {
+  } catch (error: any) {
     throw error.response.data;
   }
 };
 
-const tutorCreateCourseService = async (token: string, courseData : any) => {
+const tutorCreateCourseService = async (token: string, courseData: any) => {
   try {
     console.log(token);
-    console.log("in service ====>",courseData);
-    
+    console.log("in service ====>", courseData);
+
     const response = await axios.post(
       `${BASE_URL}/course/add_course`,
       courseData,
@@ -160,9 +160,31 @@ const tutorCreateCourseService = async (token: string, courseData : any) => {
       }
     );
     console.log(response);
-    
+
     return response;
-  } catch (error : any) {
+  } catch (error: any) {
+    throw error.response;
+  }
+};
+
+const tutorFetchApprovedCourseService = async (
+  token: string,
+  tutorId: string
+) => {
+  try {
+    console.log(token);
+
+    console.log("tutorId : ", tutorId);
+
+    const response = await axios.get(`${BASE_URL}/course/${tutorId}/courses`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log(response);
+
+    return response;
+  } catch (error: any) {
     throw error.response;
   }
 };
@@ -177,5 +199,6 @@ export {
   tutorResetPassService,
   tutorGoogleSigninService,
   tutorLogoutService,
-  tutorCreateCourseService
+  tutorCreateCourseService,
+  tutorFetchApprovedCourseService
 };
