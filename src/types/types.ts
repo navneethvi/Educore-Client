@@ -92,3 +92,16 @@ export interface CourseData {
 
   lessons: Lesson[];
 }
+
+
+export interface Category {
+  _id: string;
+  name: string;
+  course?: string[];
+}
+
+export interface CategoriesResponse {
+  categories: Category[];
+  totalPages: number;
+  currentPage: number;
+}

@@ -49,10 +49,11 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 const Students: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
   const {
-    students: { data: students, loading, error, totalPages },
+    students: { data: studentsData, loading, error, totalPages },
     adminToken,
   } = useSelector((state: RootState) => state.admin);
 
+  const [students, setStudents] = useState(studentsData || null);
   const [page, setPage] = useState(1);
   const [loadingPage, setLoadingPage] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -83,24 +84,17 @@ const Students: React.FC = () => {
     );
   }, [dispatch, adminToken, page, debouncedSearchTerm]);
 
+  useEffect(() => {
+    if (studentsData) {
+      setStudents(studentsData);
+    }
+  }, [studentsData]);
+
   const handlePageChange = (
     event: React.ChangeEvent<unknown>,
     value: number
   ) => {
     setPage(value);
-    setLoadingPage(true);
-
-    dispatch(
-      fetchStudents({
-        token: adminToken as string,
-        page: value,
-        searchTerm: debouncedSearchTerm,
-      })
-    );
-
-    setTimeout(() => {
-      setLoadingPage(false);
-    }, 1500);
   };
 
   const handleBlockUnblock = (
@@ -108,31 +102,42 @@ const Students: React.FC = () => {
     token: string,
     isBlocked: boolean
   ) => {
+    
     Swal.fire({
       title: `Are you sure you want to ${
         isBlocked ? "unblock" : "block"
       } this student?`,
-      text: "This action can be reversed at any time.",
-      icon: "warning",
       showCancelButton: true,
       confirmButtonColor: isBlocked ? "#3085d6" : "#d33",
       cancelButtonColor: "#bbb",
       confirmButtonText: isBlocked ? "Yes, unblock them!" : "Yes, block them!",
-    }).then((result) => {
+    })
+    
+    .then((result) => {
       if (result.isConfirmed) {
-        dispatch(toggleBlockStudent({ token, studentId }));
+        dispatch(toggleBlockStudent({ token, studentId }))
+          .then(() => {
+            setStudents((prevStudents) =>
+              prevStudents.map((student) =>
+                student._id === studentId
+                  ? { ...student, is_blocked: !isBlocked }
+                  : student
+              )
+            );
 
-        setTimeout(() => {
-          dispatch(
-            fetchStudents({ token, page, searchTerm: debouncedSearchTerm })
-          );
-        }, 500);
-
-        Swal.fire(
-          isBlocked ? "Unblocked!" : "Blocked!",
-          `The student has been ${isBlocked ? "unblocked" : "blocked"}.`,
-          "success"
-        );
+            Swal.fire(
+              isBlocked ? "Unblocked!" : "Blocked!",
+              `The student has been ${isBlocked ? "unblocked" : "blocked"}.`,
+              "success"
+            );
+          })
+          .catch((err) => {
+            Swal.fire(
+              "Error",
+              "An error occurred while updating the student status.",
+              "error"
+            );
+          });
       }
     });
   };
@@ -156,7 +161,7 @@ const Students: React.FC = () => {
             marginBottom: 2,
             border: 1,
             borderRadius: 10,
-            borderColor: "#808999"
+            borderColor: "#808999",
           }}
         >
           <InputBase

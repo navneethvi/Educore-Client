@@ -29,7 +29,9 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({
     handleClose();
     if (token) {
       await dispatch(tutorLogout(token));
-      navigate("/tutor/signin");
+      navigate("/tutor/signin", {
+        state: { message: "Logout Successfull" },
+      });
     }
   };
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import AdminSideBar from "./AdminSideBar";
-import Header from "./StudentHeader";
+import Header from "./AdminHeader";
 import { Box } from "@mui/material";
 
 const Layout: React.FC = () => {

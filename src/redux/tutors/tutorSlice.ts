@@ -11,11 +11,13 @@ import {
   tutorResetPass,
   tutorGoogleSignin,
   tutorLogout,
-  tutorCreateCourse
+  tutorCreateCourse,
+  tutorFetchCourses,
+  tutorDeleteCourse,
 } from "./tutorActions";
 
 interface TutorData {
-  _id : string
+  _id: string;
   name: string;
   image: string;
   token: string;
@@ -23,6 +25,39 @@ interface TutorData {
   phone: string;
   followers: string;
   bio: string;
+}
+
+interface PaginatedData<T> {
+  [x: string]: any;
+  data: T[];
+  totalPages: number;
+  loading: boolean;
+  error: string;
+}
+
+interface Lesson {
+  title: string;
+  goal: string;
+  video: string;
+  materials: string;
+  homework: string;
+}
+
+interface Course {
+  lessoncount: number;
+  lessonscount: number;
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  level: string;
+  price: number;
+  enrollments: number;
+  thumbnail: string;
+  is_approved: boolean;
+  lessons: Array<Lesson>; 
+  tutor_id: string;
+  __v: number;
 }
 
 interface TutorState {
@@ -38,9 +73,15 @@ interface TutorState {
   otpVerifySuccess: boolean;
   otpVerifyLoading: boolean;
   otpVerifyError: string;
+  approvedCourses: PaginatedData<Course>;
+  pendingCourses: PaginatedData<Course>;
+  totalPagesApproved: number;
+  totalPagesPending: number;
+  currentPageApproved: number;
+  currentPagePending: number;
 }
 
-const initialState : TutorState = {
+const initialState: TutorState = {
   tutorData: null,
   tutorToken: null,
   success: false,
@@ -52,8 +93,27 @@ const initialState : TutorState = {
   otpResendLoading: false,
   otpVerifySuccess: false,
   otpVerifyLoading: false,
-  otpVerifyError: ""
+  otpVerifyError: "",
+  approvedCourses: {
+    data: [],
+    totalPages: 1,
+    loading: false,
+    error: "",
+  },
+  totalPagesApproved: 1,
+  pendingCourses: {
+    data: [],
+    totalPages: 1,
+    loading: false,
+    error: "",
+  },
+  totalPagesPending: 1,
+  currentPageApproved: 1,
+  currentPagePending: 1,
 };
+
+// Your slice definition here
+
 
 const tutorSlice = createSlice({
   name: "tutor",
@@ -76,10 +136,14 @@ const tutorSlice = createSlice({
       state.loading = false;
       state.message = "";
     },
-    setTutorData: (state, action: PayloadAction<{ data: TutorData; token: string }>) => {
+    setTutorData: (
+      state,
+      action: PayloadAction<{ data: TutorData; token: string }>
+    ) => {
       state.tutorData = action.payload.data;
       state.tutorToken = action.payload.token;
     },
+   
   },
   extraReducers: (builder) => {
     builder
@@ -90,7 +154,6 @@ const tutorSlice = createSlice({
       .addCase(tutorSignup.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-
       })
       .addCase(tutorSignup.rejected, (state, action) => {
         state.loading = false;
@@ -220,7 +283,7 @@ const tutorSlice = createSlice({
         state.loading = true;
       })
       .addCase(tutorCreateCourse.fulfilled, (state) => {
-        state.success = true
+        state.success = true;
         state.loading = false;
       })
       .addCase(tutorCreateCourse.rejected, (state, action) => {
@@ -232,10 +295,50 @@ const tutorSlice = createSlice({
           icon: "error",
           confirmButtonText: "OK",
         });
+      })
+
+      .addCase(tutorFetchCourses.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(tutorFetchCourses.fulfilled, (state, action) => {
+        const { data, totalPages } = action.payload.data;  // Extract only the serializable data you need
+      
+        if (action.meta.arg.status === true) {
+          state.approvedCourses.data = data;
+          state.totalPagesApproved = totalPages;
+        } else if (action.meta.arg.status === false) {
+          state.pendingCourses.data = data;
+          state.totalPagesPending = totalPages;
+        }
+        state.loading = false;
+      })
+      
+
+      .addCase(tutorDeleteCourse.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(tutorDeleteCourse.fulfilled, (state, action) => {
+        state.loading = false;
+        const deletedCourseId = action.payload;
+
+        if (state.approvedCourses.data.some(course => course._id === deletedCourseId)) {
+          state.approvedCourses.data = state.approvedCourses.data.filter(course => course._id !== deletedCourseId);
+        }
+
+        if (state.pendingCourses.data.some(course => course._id === deletedCourseId)) {
+          state.pendingCourses.data = state.pendingCourses.data.filter(course => course._id !== deletedCourseId);
+        }
+      })
+      .addCase(tutorDeleteCourse.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Non Approved Course fetch failed";
       });
+
+       
   },
 });
 
-export const { resetActions, tutorLogoutLocal, setTutorData } = tutorSlice.actions;
+export const { resetActions, tutorLogoutLocal, setTutorData } =
+  tutorSlice.actions;
 
 export default tutorSlice.reducer;

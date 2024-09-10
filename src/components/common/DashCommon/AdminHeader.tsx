@@ -30,7 +30,7 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed }) => {
       className={`fixed top-0 left-0 right-0 flex justify-end items-center p-2 border-b border-gray-300 bg-white z-10 transition-all duration-300 ${
         isSidebarCollapsed ? "pl-20" : "pl-60"
       }`}
-      style={{ height: "64px", marginBottom: "0", boxSizing: "border-box" }} // Adjust height according to your header's height
+      style={{ height: "64px", marginBottom: "0", boxSizing: "border-box" }} 
     >
       <Button
         onClick={handleClick}

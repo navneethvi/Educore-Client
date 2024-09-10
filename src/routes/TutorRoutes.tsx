@@ -15,6 +15,7 @@ import Messages from "../components/common/contents/tutor/Messages";
 import Webinars from "../components/common/contents/tutor/Webinars";
 import AddCourses from "../components/common/contents/tutor/AddCourses";
 import Profile from "../components/common/contents/tutor/Profile";
+import EditCourse from "../components/common/contents/tutor/EditCourse";
 
 const TutorRoutes = () => {
   return (
@@ -41,6 +42,8 @@ const TutorRoutes = () => {
         <Route path="webinar" element={<Webinars />} />
         <Route path="add-course" element={<AddCourses />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="/edit-course/:courseId" element={<EditCourse />} />
+
       </Route>
     </Routes>
   );

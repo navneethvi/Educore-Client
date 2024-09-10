@@ -21,31 +21,79 @@ import { motion } from "framer-motion";
 import Cropper, { ReactCropperElement } from "react-cropper";
 import "cropperjs/dist/cropper.css";
 import { Formik, Field, Form, FieldArray } from "formik";
+import * as Yup from "yup";
 import Swal from "sweetalert2";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../../store/store";
-import { tutorCreateCourse } from "../../../../redux/tutors/tutorActions";
-import { useNavigate } from "react-router-dom";
-import { resetActions } from "../../../../redux/tutors/tutorSlice";
+import { useNavigate, useParams } from "react-router-dom";
+import { tutorFetchCourseDetails } from "../../../../redux/tutors/tutorActions"; // Import the thunk action
 import { courseValidationSchema } from "../../../../validations/courseValidation";
-import { uploadFileToS3 } from "../../../../utils/s3";
-import axios from "axios";
-import { BASE_URL } from "../../../../utils/configs";
 
-const AddCourses: React.FC = () => {
+interface LessonType {
+  title: string;
+  goal: string;
+  video: string;
+  materials: string;
+  homework: string;
+}
+
+const EditCourse: React.FC = () => {
   const [thumbnail, setThumbnail] = useState<string>("");
   const [croppedThumbnail, setCroppedThumbnail] = useState<string>("");
+  const [courseDetails, setCourseDetails] = useState<any>(null); // Manage course details locally
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const { courseId } = useParams();
   const [open, setOpen] = useState(false);
-  const [loading2, setLoading] = useState(false)
 
   const cropperRef = useRef<ReactCropperElement>(null);
-
   const navigate = useNavigate();
-
   const dispatch: AppDispatch = useDispatch();
-  const { tutorToken, loading, success } = useSelector(
-    (state: RootState) => state.tutor
-  );
+
+  const { tutorToken } = useSelector((state: RootState) => state.tutor);
+
+  console.log("courseDetails =====>", courseDetails);
+
+  useEffect(() => {
+    const fetchCourseDetails = async () => {
+      if (courseId) {
+        setLoading(true);
+        try {
+          const response = await dispatch(
+            tutorFetchCourseDetails({ token: tutorToken as string, courseId })
+          ).unwrap();
+          setCourseDetails(response);
+        } catch (error: any) {
+          setError(error.message || "Failed to fetch course details");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchCourseDetails();
+  }, [courseId, dispatch]);
+
+  useEffect(() => {
+    if (courseDetails) {
+      setThumbnail(courseDetails.thumbnail || "");
+      setCroppedThumbnail(courseDetails.thumbnail || "");
+    }
+  }, [courseDetails]);
+
+  useEffect(() => {
+    if (courseDetails && courseDetails.updated) {
+      // Adjust based on your response
+      Swal.fire({
+        title: "Course Updated!",
+        text: "Your course has been successfully updated.",
+        icon: "success",
+        confirmButtonText: "OK",
+      }).then(() => {
+        navigate("/tutor/courses");
+      });
+    }
+  }, [courseDetails, navigate]);
 
   const handleThumbnailUpload = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -55,7 +103,6 @@ const AddCourses: React.FC = () => {
       const reader = new FileReader();
       reader.onload = () => {
         setThumbnail(reader.result as string);
-        setOpen(true);
       };
       reader.readAsDataURL(file);
     }
@@ -70,107 +117,58 @@ const AddCourses: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (success) {
-      Swal.fire({
-        title: "Course Uploaded!",
-        text: "Your course has been successfully uploaded.",
-        icon: "success",
-        confirmButtonText: "OK",
-      }).then(() => {
-        navigate("/tutor/courses");
-        dispatch(resetActions());
-      });
-    }
-  }, [success, navigate, dispatch]);
-
-  function generateUniqueFilename(originalFilename: any): string {
-    const timestamp = new Date().toISOString();
-    const sanitizedFilename = originalFilename.replace(/\s+/g, '-'); 
-    return `${timestamp}-${sanitizedFilename}`;
-  }
-  
-  
-
-  const uploadLessonFile = async (file: File): Promise<string> => {
-    try {
-      
-
-      const uniqueFilename = generateUniqueFilename(file);
-
-      console.log("Requesting upload URL for:", uniqueFilename, file.type);
-      console.log("File details:", file); // Check file object
-      const contentType = file.type || 'application/octet-stream'; // Use a default MIME type if file.type is undefined
-
-      console.log("Requesting upload URL for:", uniqueFilename, contentType);
-
-
-      const { data } = await axios.get(`${BASE_URL}/course/get-upload-url`, {
-        params: { key: uniqueFilename, contentType: contentType },
-      });
-
-      const presignedUrl = data.url;
-
-      await uploadFileToS3(presignedUrl, file);
-
-      return uniqueFilename;
-    } catch (error) {
-      console.error("Error uploading file to S3:", error);
-      throw error;
-    }
-  };
-
   const handleSubmit = async (values: any) => {
-    setLoading(true); // Set loading to true when upload starts
+    const formData = new FormData();
+    formData.append("title", values.title);
+    formData.append("description", values.description);
+    formData.append("category", values.category);
+    formData.append("level", values.level);
+    formData.append("price", values.price);
+
+    if (croppedThumbnail) {
+      formData.append("thumbnail", croppedThumbnail);
+    }
+
+    values.lessons.forEach((lesson: any, index: number) => {
+      formData.append(`lessons[${index}][title]`, lesson.title);
+      formData.append(`lessons[${index}][goal]`, lesson.goal);
+      if (lesson.video) {
+        formData.append(`lessons[${index}][video]`, lesson.video);
+      }
+      if (lesson.materials) {
+        formData.append(`lessons[${index}][materials]`, lesson.materials);
+      }
+      if (lesson.homework) {
+        formData.append(`lessons[${index}][homework]`, lesson.homework);
+      }
+    });
+
     try {
-      const formData = new FormData();
-      formData.append("title", values.title);
-      formData.append("description", values.description);
-      formData.append("category", values.category);
-      formData.append("level", values.level);
-      formData.append("price", values.price);
-  
-      for (const [index, lesson] of values.lessons.entries()) {
-        formData.append(`lessons[${index}][title]`, lesson.title);
-        formData.append(`lessons[${index}][goal]`, lesson.goal);
-  
-        if (lesson.video) {
-          const videoFilename = await uploadLessonFile(lesson.video);
-          formData.append(`lessons[${index}][video]`, videoFilename);
-        }
-        if (lesson.materials) {
-          const materialsFilename = await uploadLessonFile(lesson.materials);
-          formData.append(`lessons[${index}][materials]`, materialsFilename);
-        }
-        if (lesson.homework) {
-          const homeworkFilename = await uploadLessonFile(lesson.homework);
-          formData.append(`lessons[${index}][homework]`, homeworkFilename);
-        }
-      }
-  
-      if (values.thumbnail) {
-        const thumbnailFilename = await uploadLessonFile(values.thumbnail);
-        formData.append("thumbnail", thumbnailFilename);
-      }
-  
-      await dispatch(
-        tutorCreateCourse({ token: tutorToken as string, courseData: formData })
-      );
+      // Uncomment and use the actual dispatch function
+      // await dispatch(
+      //   tutorEditCourse({ token: tutorToken as string, courseId, courseData: formData })
+      // );
     } catch (error) {
-      console.error("Error uploading course:", error);
-    } finally {
-      setLoading(false); // Set loading to false when upload completes
+      console.error("Failed to update course:", error);
+      Swal.fire({
+        title: "Error!",
+        text: "There was an error updating your course. Please try again.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     }
   };
-  
 
+  if (!courseDetails) {
+    return <Typography variant="h6">Course not found</Typography>;
+  }
   return (
     <>
-       <div className="heading">
-        <h1 className="text-2xl font-semibold">Add Courses</h1>
+      <div className="heading">
+        <h1 className="text-2xl font-semibold">Edit Courses</h1>
       </div>
 
-      {loading || loading2 && (
+      {loading && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -229,12 +227,12 @@ const AddCourses: React.FC = () => {
 
       <Formik
         initialValues={{
-          title: "",
-          description: "",
-          category: "",
-          level: "",
-          price: "",
-          lessons: [
+          title: courseDetails.title || "",
+          description: courseDetails.description || "",
+          category: courseDetails.category || "",
+          level: courseDetails.level || "",
+          price: courseDetails.price || "",
+          lessons: courseDetails.lessons || [
             { title: "", goal: "", video: "", materials: "", homework: "" },
           ],
         }}
@@ -363,151 +361,158 @@ const AddCourses: React.FC = () => {
                           drag="y"
                           dragConstraints={{ top: -300, bottom: 0 }}
                         >
-                          {values.lessons.map((_, index) => (
-                            <Card
-                              key={index}
-                              sx={{
-                                maxWidth: 400,
-                                margin: "auto",
-                                padding: 1,
-                                mb: 2,
-                                backgroundColor: "#e4e4e7",
-                                position: "relative",
-                              }}
-                            >
-                              <IconButton
-                                sx={{ position: "absolute", top: 21, right: 8 }}
-                                onClick={() => arrayHelpers.remove(index)}
+                          {values.lessons.map(
+                            (lesson: LessonType, index: number) => (
+                              <Card
+                                key={index}
+                                sx={{
+                                  maxWidth: 400,
+                                  margin: "auto",
+                                  padding: 1,
+                                  mb: 2,
+                                  backgroundColor: "#e4e4e7",
+                                  position: "relative",
+                                }}
                               >
-                                <Delete />
-                              </IconButton>
-                              <CardContent>
-                                <Typography variant="h6" gutterBottom>
-                                  Lesson {index + 1}
-                                </Typography>
-                                <Box
-                                  component="form"
-                                  noValidate
-                                  autoComplete="off"
+                                <IconButton
                                   sx={{
-                                    "& .MuiTextField-root": { mb: 2 },
+                                    position: "absolute",
+                                    top: 21,
+                                    right: 8,
                                   }}
+                                  onClick={() => arrayHelpers.remove(index)}
                                 >
-                                  <Field
-                                    name={`lessons.${index}.title`}
-                                    as={TextField}
-                                    label="Title"
-                                    variant="outlined"
-                                    fullWidth
-                                    size="small"
-                                  />
-                                  <Field
-                                    name={`lessons.${index}.goal`}
-                                    as={TextField}
-                                    label="Goal"
-                                    variant="outlined"
-                                    fullWidth
-                                    size="small"
-                                  />
+                                  <Delete />
+                                </IconButton>
+                                <CardContent>
+                                  <Typography variant="h6" gutterBottom>
+                                    Lesson {index + 1}
+                                  </Typography>
                                   <Box
+                                    component="form"
+                                    noValidate
+                                    autoComplete="off"
                                     sx={{
-                                      mb: 1,
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "space-between",
+                                      "& .MuiTextField-root": { mb: 2 },
                                     }}
                                   >
-                                    <Typography variant="subtitle1">
-                                      Video
-                                    </Typography>
-                                    <Button
-                                      variant="contained"
-                                      color="secondary"
-                                      component="label"
-                                      startIcon={<Upload />}
+                                    <Field
+                                      name={`lessons.${index}.title`}
+                                      as={TextField}
+                                      label="Title"
+                                      variant="outlined"
+                                      fullWidth
+                                      size="small"
+                                    />
+                                    <Field
+                                      name={`lessons.${index}.goal`}
+                                      as={TextField}
+                                      label="Goal"
+                                      variant="outlined"
+                                      fullWidth
+                                      size="small"
+                                    />
+                                    <Box
+                                      sx={{
+                                        mb: 1,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                      }}
                                     >
-                                      {values.lessons[index].video || "Upload"}
-                                      <input
-                                        type="file"
-                                        name={`lessons[${index}][video]`}
-                                        hidden
-                                        onChange={(e) =>
-                                          setFieldValue(
-                                            `lessons.${index}.video`,
-                                            e.target.files?.[0]?.name || ""
-                                          )
-                                        }
-                                      />
-                                    </Button>
-                                  </Box>
-                                  <Box
-                                    sx={{
-                                      mb: 1,
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "space-between",
-                                    }}
-                                  >
-                                    <Typography variant="subtitle1">
-                                      Materials
-                                    </Typography>
-                                    <Button
-                                      variant="contained"
-                                      color="secondary"
-                                      component="label"
-                                      startIcon={<Upload />}
+                                      <Typography variant="subtitle1">
+                                        Video
+                                      </Typography>
+                                      <Button
+                                        variant="contained"
+                                        color="secondary"
+                                        component="label"
+                                        startIcon={<Upload />}
+                                      >
+                                        {values.lessons[index].video ||
+                                          "Upload"}
+                                        <input
+                                          type="file"
+                                          name={`lessons[${index}][video]`}
+                                          hidden
+                                          onChange={(e) =>
+                                            setFieldValue(
+                                              `lessons.${index}.video`,
+                                              e.target.files?.[0]?.name || ""
+                                            )
+                                          }
+                                        />
+                                      </Button>
+                                    </Box>
+                                    <Box
+                                      sx={{
+                                        mb: 1,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                      }}
                                     >
-                                      {values.lessons[index].materials ||
-                                        "Upload"}
-                                      <input
-                                        type="file"
-                                        name={`lessons[${index}][materials]`}
-                                        hidden
-                                        onChange={(e) =>
-                                          setFieldValue(
-                                            `lessons.${index}.materials`,
-                                            e.target.files?.[0]?.name || ""
-                                          )
-                                        }
-                                      />
-                                    </Button>
-                                  </Box>
-                                  <Box
-                                    sx={{
-                                      mb: 1,
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "space-between",
-                                    }}
-                                  >
-                                    <Typography variant="subtitle1">
-                                      Homework
-                                    </Typography>
-                                    <Button
-                                      variant="contained"
-                                      color="secondary"
-                                      component="label"
-                                      startIcon={<Upload />}
+                                      <Typography variant="subtitle1">
+                                        Materials
+                                      </Typography>
+                                      <Button
+                                        variant="contained"
+                                        color="secondary"
+                                        component="label"
+                                        startIcon={<Upload />}
+                                      >
+                                        {values.lessons[index].materials ||
+                                          "Upload"}
+                                        <input
+                                          type="file"
+                                          name={`lessons[${index}][materials]`}
+                                          hidden
+                                          onChange={(e) =>
+                                            setFieldValue(
+                                              `lessons.${index}.materials`,
+                                              e.target.files?.[0]?.name || ""
+                                            )
+                                          }
+                                        />
+                                      </Button>
+                                    </Box>
+                                    <Box
+                                      sx={{
+                                        mb: 1,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                      }}
                                     >
-                                      {values.lessons[index].homework ||
-                                        "Upload"}
-                                      <input
-                                        type="file"
-                                        name={`lessons[${index}][homework]`}
-                                        hidden
-                                        onChange={(e) =>
-                                          setFieldValue(
-                                            `lessons.${index}.homework`,
-                                            e.target.files?.[0]?.name || ""
-                                          )
-                                        }
-                                      />
-                                    </Button>
+                                      <Typography variant="subtitle1">
+                                        Homework
+                                      </Typography>
+                                      <Button
+                                        variant="contained"
+                                        color="secondary"
+                                        component="label"
+                                        startIcon={<Upload />}
+                                      >
+                                        {values.lessons[index].homework ||
+                                          "Upload"}
+                                        <input
+                                          type="file"
+                                          name={`lessons[${index}][homework]`}
+                                          hidden
+                                          onChange={(e) =>
+                                            setFieldValue(
+                                              `lessons.${index}.homework`,
+                                              e.target.files?.[0]?.name || ""
+                                            )
+                                          }
+                                        />
+                                      </Button>
+                                    </Box>
                                   </Box>
-                                </Box>
-                              </CardContent>
-                            </Card>
-                          ))}
+                                </CardContent>
+                              </Card>
+                            )
+                          )}
                         </motion.div>
                         <Box
                           sx={{
@@ -594,5 +599,4 @@ const AddCourses: React.FC = () => {
   );
 };
 
-export default AddCourses;
-
+export default EditCourse;

@@ -3,7 +3,7 @@ import { Menu, MenuItem, Avatar, Typography } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../../../store/store";
 import { useNavigate } from "react-router-dom";
-// import { studentLogout } from "../../../redux/students/studentActions";
+import { adminLogout } from "../../../redux/admin/adminActions";
 
 interface ProfileBoxProps {
   anchorEl: null | HTMLElement;
@@ -28,8 +28,10 @@ const AdminProfileBox: React.FC<ProfileBoxProps> = ({
   const handleLogout = async () => {
     handleClose();
     if (token) {
-    //   await dispatch(studentLogout(token));
-      navigate("/signin", {
+      console.log("hello hello");
+      
+      await dispatch(adminLogout(token));
+      navigate("/admin/signin", {
         state: { message: "Logout Successfull" },
       });
     }

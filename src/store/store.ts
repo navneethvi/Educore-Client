@@ -12,6 +12,7 @@ const store = configureStore({
     tutor: tutorReducer,
     admin: adminReducer,
   },
+  
 });
 
 export type RootState = ReturnType<typeof store.getState>;

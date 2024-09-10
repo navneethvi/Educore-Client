@@ -167,23 +167,65 @@ const tutorCreateCourseService = async (token: string, courseData: any) => {
   }
 };
 
-const tutorFetchApprovedCourseService = async (
+const tutorFetchCoursesService = async (
   token: string,
-  tutorId: string
+  tutorId: string,
+  status: boolean
 ) => {
   try {
-    console.log(token);
-
-    console.log("tutorId : ", tutorId);
-
-    const response = await axios.get(`${BASE_URL}/course/${tutorId}/courses`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    console.log(response);
-
+    const response = await axios.get(
+      `${BASE_URL}/course/${tutorId}/courses/${status}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response;
+  } catch (error: any) {
+    throw error.response;
+  }
+};
+
+const tutorDeleteCourseService = async (token: string, courseId: string) => {
+  try {
+    console.log("courseId : ", courseId);
+
+    const response = await axios.delete(
+      `${BASE_URL}/course/delete_course/${courseId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log("Response:", response);
+
+    if (response.status >= 200 && response.status < 300) {
+      return courseId;
+    } else {
+      throw new Error("Failed to delete course");
+    }
+  } catch (error: any) {
+    throw error.response?.data?.message || "An error occurred";
+  }
+};
+
+const tutorFetchCourseDetailsService = async (
+  token: string,
+  courseId: string
+) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/course/course_details/${courseId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
   } catch (error: any) {
     throw error.response;
   }
@@ -200,5 +242,7 @@ export {
   tutorGoogleSigninService,
   tutorLogoutService,
   tutorCreateCourseService,
-  tutorFetchApprovedCourseService
+  tutorFetchCoursesService,
+  tutorDeleteCourseService,
+  tutorFetchCourseDetailsService
 };

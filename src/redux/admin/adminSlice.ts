@@ -7,6 +7,8 @@ import {
   fetchCategories,
   fetchStudents,
   fetchTutors,
+  getAllCourses,
+  getCourseDetails,
   toggleBlockStudent,
   toggleBlockTutor,
 } from "./adminActions";
@@ -39,6 +41,31 @@ interface Category {
   course: any[];
 }
 
+
+interface Lesson {
+  title: string;
+  goal: string;
+  video: string;
+  materials: string;
+  homework: string;
+}
+
+interface Course {
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  level: string;
+  price: number;
+  enrollments: number;
+  thumbnail: string;
+  is_approved: boolean;
+  lessons: Array<Lesson>; 
+  tutor_id: string;
+  __v: number;
+}
+
+
 interface PaginatedData<T> {
   data: T[];
   totalPages: number;
@@ -56,6 +83,12 @@ interface AdminState {
   students: PaginatedData<Student>;
   tutors: PaginatedData<Tutor>;
   categories: PaginatedData<Category>;
+  approvedCourses: PaginatedData<Course>;
+  pendingCourses: PaginatedData<Course>;
+  totalPagesApproved: number;
+  totalPagesPending: number;
+  currentPageApproved: number;
+  currentPagePending: number;
 }
 
 const initialState: AdminState = {
@@ -83,6 +116,22 @@ const initialState: AdminState = {
     loading: false,
     error: "",
   },
+  approvedCourses: {
+    data: [],
+    totalPages: 1,
+    loading: false,
+    error: "",
+  },
+  totalPagesApproved: 1,
+  pendingCourses: {
+    data: [],
+    totalPages: 1,
+    loading: false,
+    error: "",
+  },
+  totalPagesPending: 1,
+  currentPageApproved: 1,
+  currentPagePending: 1,
 };
 
 const adminSlice = createSlice({
@@ -132,6 +181,7 @@ const adminSlice = createSlice({
         state.loading = false;
         state.error = action.payload || "Something went wrong";
       })
+
 
       .addCase(fetchStudents.pending, (state) => {
         state.students.loading = true;
@@ -184,6 +234,7 @@ const adminSlice = createSlice({
       })
       .addCase(addCategory.fulfilled, (state, action: any) => {
         state.categories.loading = false;
+        state.categories.data.push(action.payload);
       })
       .addCase(addCategory.rejected, (state, action: PayloadAction<any>) => {
         state.categories.loading = false;
@@ -196,6 +247,9 @@ const adminSlice = createSlice({
       })
       .addCase(deleteCategory.fulfilled, (state, action: any) => {
         state.categories.loading = false;
+        state.categories.data = state.categories.data.filter(
+          (category) => category._id !== action.payload.category_id
+        );
       })
       .addCase(deleteCategory.rejected, (state, action: PayloadAction<any>) => {
         state.categories.loading = false;
@@ -238,7 +292,36 @@ const adminSlice = createSlice({
         toggleBlockStudent.rejected,
         (state, action: PayloadAction<any>) => {
           state.loading = false;
-          state.error = action.payload || "Failed to Delete Category";
+          state.error = action.payload || "Failed to Block Student";
+        }
+      )
+
+      .addCase(getAllCourses.pending, (state) => {
+        state.loading = true;
+        state.error = "";
+      })
+      .addCase(getAllCourses.fulfilled, (state, action: any) => {
+        state.loading = false;
+        state.success = true;
+      })
+      .addCase(getAllCourses.rejected, (state, action: PayloadAction<any>) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to Fetch Courses";
+      })
+
+      .addCase(getCourseDetails.pending, (state) => {
+        state.loading = true;
+        state.error = "";
+      })
+      .addCase(getCourseDetails.fulfilled, (state, action: any) => {
+        state.loading = false;
+        state.success = true;
+      })
+      .addCase(
+        getCourseDetails.rejected,
+        (state, action: PayloadAction<any>) => {
+          state.loading = false;
+          state.error = action.payload || "Failed to Fetch Course Details";
         }
       );
   },

@@ -50,10 +50,11 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 const Tutors: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
   const {
-    tutors: { data: tutors, loading, error, totalPages },
+    tutors: { data: tutorsData, loading, error, totalPages },
     adminToken,
   } = useSelector((state: RootState) => state.admin);
 
+  const [tutors, setTutors] = useState(tutorsData || []);
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -82,6 +83,10 @@ const Tutors: React.FC = () => {
     }
   }, [dispatch, adminToken, page, debouncedSearchTerm]);
 
+  useEffect(() => {
+    setTutors(tutorsData);
+  }, [tutorsData]);
+
   const handlePageChange = (
     event: React.ChangeEvent<unknown>,
     value: number
@@ -98,30 +103,40 @@ const Tutors: React.FC = () => {
       title: `Are you sure you want to ${
         isBlocked ? "unblock" : "block"
       } this tutor?`,
-      text: "This action can be reversed at any time.",
-      icon: "warning",
       showCancelButton: true,
       confirmButtonColor: isBlocked ? "#3085d6" : "#d33",
       cancelButtonColor: "#bbb",
       confirmButtonText: isBlocked ? "Yes, unblock them!" : "Yes, block them!",
     }).then((result) => {
       if (result.isConfirmed) {
-        dispatch(toggleBlockTutor({ token, tutorId }));
-
-        setTimeout(() => {
-          dispatch(
-            fetchTutors({ token, page, searchTerm: debouncedSearchTerm })
-          );
-        }, 500);
-
-        Swal.fire(
-          isBlocked ? "Unblocked!" : "Blocked!",
-          `The tutor has been ${isBlocked ? "unblocked" : "blocked"}.`,
-          "success"
-        );
+        dispatch(toggleBlockTutor({ token, tutorId }))
+          .then(() => {
+            setTutors((prevTutors) =>
+              prevTutors.map((tutor) =>
+                tutor._id === tutorId
+                  ? { ...tutor, is_blocked: !isBlocked }
+                  : tutor
+              )
+            );
+  
+            Swal.fire(
+              isBlocked ? "Unblocked!" : "Blocked!",
+              `The tutor has been ${isBlocked ? "unblocked" : "blocked"}.`,
+              "success"
+            );
+          })
+          .catch((error) => {
+            console.error("Failed to toggle block/unblock:", error);
+            Swal.fire(
+              "Error",
+              "There was an issue updating the tutor's status. Please try again later.",
+              "error"
+            );
+          });
       }
     });
   };
+  
 
   return (
     <>

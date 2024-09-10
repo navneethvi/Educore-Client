@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import GoogleIcon from "@mui/icons-material/Google";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { resetActions } from "../../redux/tutors/tutorSlice";
 import { Link } from "react-router-dom";
@@ -22,6 +22,7 @@ const TutorSignIn = () => {
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
+  const location = useLocation()
   const dispatch: AppDispatch = useDispatch();
 
   const { loading, error, message, success } = useSelector(
@@ -29,6 +30,10 @@ const TutorSignIn = () => {
   );
 
   useEffect(() => {
+    if (location.state?.message) {
+      toast.success(location.state.message);
+    }
+
     if (error) {
       toast.error(error);
       dispatch(resetActions());
@@ -40,6 +45,10 @@ const TutorSignIn = () => {
         state: { message: "You've successfully signed in.", email: email },
       });
     }
+
+    return () => {
+      dispatch(resetActions());
+    };
   });
 
   const handleSignIn = async () => {

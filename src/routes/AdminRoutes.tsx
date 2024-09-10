@@ -10,13 +10,15 @@ import Students from "../components/common/contents/admin/Students";
 import Tutors from "../components/common/contents/admin/Tutors";
 import Category from "../components/common/contents/admin/Category";
 
+import CourseDetails from "../components/common/contents/admin/CourseDetails";
+
 const AdminRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/signin" element={<AdminSignIn />} />
 
-        {/* Protected Routes */}
-        <Route
+      {/* Protected Routes */}
+      <Route
         path="/"
         element={
           <AdminProtected>
@@ -25,7 +27,8 @@ const AdminRoutes: React.FC = () => {
         }
       >
         <Route path="dashboard" element={<Dashboard />} />
-         <Route path="courses" element={<Courses />} />
+        <Route path="courses" element={<Courses />} />
+        <Route path="/course/:courseId" element={<CourseDetails />} />{" "}
         <Route path="students" element={<Students />} />
         <Route path="tutors" element={<Tutors />} />
         <Route path="category" element={<Category />} />

@@ -53,8 +53,8 @@ const VerifyEmail = () => {
   }, [otpResendError, otpResendSuccess]);
 
   const startNewTimer = () => {
-    setIsResendVisible(false); // Hide the Resend OTP button when the timer starts
-    const endTime = Date.now() + 60000; // 1 minute
+    setIsResendVisible(false); 
+    const endTime = Date.now() + 60000;
     localStorage.setItem("otpEndTime", endTime.toString());
     setTimer(60);
 
@@ -62,7 +62,7 @@ const VerifyEmail = () => {
       setTimer((prevTimer) => {
         if (prevTimer <= 1) {
           clearInterval(countdown);
-          setIsResendVisible(true); // Show the Resend OTP button when the timer ends
+          setIsResendVisible(true); 
           return 0;
         }
         return prevTimer - 1;

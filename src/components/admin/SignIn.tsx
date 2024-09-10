@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { resetActions } from "../../redux/admin/adminSlice";
 
@@ -11,10 +11,11 @@ import { RootState, AppDispatch } from "../../store/store";
 import { adminSignin } from "../../redux/admin/adminActions";
 
 const AdminSignIn: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("pegpilot7@gmail.com");
+  const [password, setPassword] = useState("admin");
 
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch: AppDispatch = useDispatch();
 
   const { loading, error, message, success } = useSelector(
@@ -22,6 +23,10 @@ const AdminSignIn: React.FC = () => {
   );
 
   useEffect(() => {
+    if (location.state?.message) {
+      toast.success(location.state.message);
+    }
+    
     if (error) {
       toast.error(error);
       dispatch(resetActions());

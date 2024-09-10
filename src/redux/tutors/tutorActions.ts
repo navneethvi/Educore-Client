@@ -11,7 +11,9 @@ import {
   tutorGoogleSigninService,
   tutorLogoutService,
   tutorCreateCourseService,
-  tutorFetchApprovedCourseService,
+  tutorDeleteCourseService,
+  tutorFetchCoursesService,
+  tutorFetchCourseDetailsService,
 } from "./tutorServices";
 
 import {
@@ -166,17 +168,45 @@ export const tutorCreateCourse = createAsyncThunk<
     return handleThunkError(error, thunkAPI);
   }
 });
-
-export const tutorFetchApprovedCourses = createAsyncThunk<
+export const tutorFetchCourses = createAsyncThunk<
   any,
-  { token: string; tutorId: string },
+  { token: string; tutorId: string; status: boolean },
   { rejectValue: string }
->("tutorFetchApprovedCourses", async ({ token, tutorId }, thunkAPI) => {
+>("tutorFetchCourses", async ({ token, tutorId, status }, thunkAPI) => {
   try {
-    const response = await tutorFetchApprovedCourseService(token, tutorId);
-    console.log("in TutorFetchApprovedCourses===>", response);
+    const response = await tutorFetchCoursesService(token, tutorId, status);
     return response;
   } catch (error: any) {
     return handleThunkError(error, thunkAPI);
+  }
+});
+
+export const tutorDeleteCourse = createAsyncThunk<
+  string,
+  { token: string; courseId: string },
+  { rejectValue: string }
+>("tutordeleteCourse", async ({ token, courseId }, thunkAPI) => {
+  try {
+    const response = await tutorDeleteCourseService(token, courseId);
+    console.log("in TutorDeleteCourses ===>", response);
+    return response;
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue(error.message || "Failed to delete course");
+  }
+});
+
+export const tutorFetchCourseDetails = createAsyncThunk<
+  any,
+  { token: string; courseId: string },
+  { rejectValue: string }
+>("tutorFetchCourseDetails", async ({ token, courseId }, thunkAPI) => {
+  try {
+    const response = await tutorFetchCourseDetailsService(token, courseId);
+    console.log("in TutorFetchCourseDetails===>", response);
+    return response;
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue(
+      error.message || "Failed to fetch course details"
+    );
   }
 });

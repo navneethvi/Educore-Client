@@ -1,6 +1,6 @@
 import GoogleIcon from "@mui/icons-material/Google";
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,6 +19,7 @@ const SignIn: React.FC = () => {
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch: AppDispatch = useDispatch();
 
   const { loading, error, message, success } = useSelector(
@@ -26,6 +27,10 @@ const SignIn: React.FC = () => {
   );
 
   useEffect(() => {
+    if (location.state?.message) {
+      toast.success(location.state.message);
+    }
+    
     if (error) {
       toast.error(error);
       dispatch(resetActions());

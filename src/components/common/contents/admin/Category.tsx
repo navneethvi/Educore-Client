@@ -13,7 +13,6 @@ import {
   Stack,
   Pagination,
 } from "@mui/material";
-
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../../../store/store";
@@ -25,29 +24,47 @@ import {
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
-import DeleteIcon from "@mui/icons-material/Delete";
+
+interface Category {
+  _id: string;
+  name: string;
+  course?: string[];
+}
+
+interface CategoriesResponse {
+  categories: Category[];
+  totalPages: number;
+  currentPage: number;
+}
 
 const Category: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
-  const {
-    categories: { data: categories = [], loading, error, totalPages },
-    adminToken,
-  } = useSelector((state: RootState) => state.admin);
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(5);
+  const { adminToken } = useSelector((state: RootState) => state.admin);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [newCategory, setNewCategory] = useState("");
 
   useEffect(() => {
     if (adminToken) {
-      dispatch(fetchCategories({ token: adminToken, page }));
+      dispatch(fetchCategories({ token: adminToken, page: currentPage }))
+        .unwrap()
+        .then((response: CategoriesResponse) => {
+          // Extract data from the response
+          const { categories, totalPages, currentPage } = response;
+          setCategories(categories || []);
+          setTotalPages(totalPages || 0);
+          setCurrentPage(currentPage || 1);
+        })
+        .catch((error) => {
+          setCategories([]);
+          toast.error(`Error fetching categories: ${error}`);
+        });
     }
-  }, [dispatch, adminToken, page]);
+  }, [dispatch, adminToken, currentPage]);
 
-  const handlePageChange = (
-    event: React.ChangeEvent<unknown>,
-    value: number
-  ) => {
-    setPage(value);
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setCurrentPage(value);
   };
 
   const handleAddCategory = (event: React.FormEvent<HTMLFormElement>) => {
@@ -65,11 +82,19 @@ const Category: React.FC = () => {
 
     dispatch(addCategory({ token: adminToken, name: newCategory.trim() }))
       .unwrap()
-      .then(() => {
-        toast.success("Category added successfully!");
-        setNewCategory("");
-
-        dispatch(fetchCategories({ token: adminToken, page }));
+      .then((newCategory) => {
+        // Fetch categories again after adding a new one
+        dispatch(fetchCategories({ token: adminToken, page: currentPage }))
+          .unwrap()
+          .then((response: CategoriesResponse) => {
+            setCategories(response.categories || []);
+            setTotalPages(response.totalPages || 0);
+            toast.success("Category added successfully!");
+            setNewCategory("");
+          })
+          .catch((error) => {
+            toast.error(`Error fetching categories after addition: ${error}`);
+          });
       })
       .catch((err) => {
         toast.error(`${err}`);
@@ -95,10 +120,23 @@ const Category: React.FC = () => {
         dispatch(deleteCategory({ token: adminToken, category_id: categoryId }))
           .unwrap()
           .then(() => {
-            dispatch(fetchCategories({ token: adminToken, page }));
+            // Fetch categories again after deletion
+            dispatch(fetchCategories({ token: adminToken, page: currentPage }))
+              .unwrap()
+              .then((response: CategoriesResponse) => {
+                // Adjust the current page if necessary
+                const isLastPageEmpty = currentPage > response.totalPages;
+                setCurrentPage(isLastPageEmpty ? Math.max(response.totalPages, 1) : currentPage);
+                setCategories(response.categories || []);
+                setTotalPages(response.totalPages || 0);
+                toast.success("Category deleted successfully!");
+              })
+              .catch((error) => {
+                toast.error(`Error fetching categories after deletion: ${error}`);
+              });
           })
           .catch((err) => {
-            toast.error(`Error: ${err}`);
+            toast.error(`Error deleting category: ${err}`);
           });
 
         Swal.fire("Deleted!", "Your category has been deleted.", "success");
@@ -174,50 +212,42 @@ const Category: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {categories.length === 0 && !loading && !error && (
+                {categories.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={3} align="center">
                       No categories found.
                     </TableCell>
                   </TableRow>
-                )}
-                {categories.map((category) => (
-                  <motion.tr
-                    key={category._id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.8 }}
-                  >
-                    <TableCell sx={{ padding: "16px" }}>
-                      {category.name}
-                    </TableCell>
-                    <TableCell align="center" sx={{ padding: "16px" }}>
-                      {category.course ? category.course.length : 0}
-                    </TableCell>
-                    <TableCell align="center" sx={{ padding: "16px" }}>
-                      <button
-                        className="bg-purple-600 text-white text-xs px-5 py-2 rounded-full"
-                        onClick={() => handleDeleteCategory(category._id)}
-                      >
-                        Delete
-                      </button>
-                    </TableCell>
-                  </motion.tr>
-                ))}
-                {loading && (
-                  <TableRow>
-                    <TableCell colSpan={3} align="center">
-                      Loading...
-                    </TableCell>
-                  </TableRow>
+                ) : (
+                  categories.map((category) => (
+                    <motion.tr
+                      key={category._id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.8 }}
+                    >
+                      <TableCell sx={{ padding: "16px" }}>{category.name}</TableCell>
+                      <TableCell align="center" sx={{ padding: "16px" }}>
+                        {category.course ? category.course.length : 0}
+                      </TableCell>
+                      <TableCell align="center" sx={{ padding: "16px" }}>
+                        <button
+                          className="bg-purple-600 text-white text-xs px-5 py-2 rounded-full"
+                          onClick={() => handleDeleteCategory(category._id)}
+                        >
+                          Delete
+                        </button>
+                      </TableCell>
+                    </motion.tr>
+                  ))
                 )}
               </TableBody>
             </Table>
           </TableContainer>
           <Stack spacing={2} mt={2} alignItems="center">
             <Pagination
-              count={totalPages}
-              page={page}
+              count={totalPages} // Use totalPages from the state
+              page={currentPage} // Use currentPage from the state
               onChange={handlePageChange}
               color="secondary"
             />
@@ -241,30 +271,20 @@ const Category: React.FC = () => {
               backgroundColor: "#ffffff",
               borderRadius: "8px",
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-              border: "1px solid #e0e0e0",
-              width: "100%",
-              maxWidth: "400px",
-              margin: "auto",
             }}
           >
-            <h1 className="text-center mb-8  font-medium text-gray-600">
-              Add New Category
-            </h1>
             <TextField
               label="Category Name"
               variant="outlined"
-              fullWidth
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
+              fullWidth
+              required
               sx={{ mb: 2 }}
             />
-
-            <button
-              className="bg-purple-600 text-white text-xs px-5 py-3 rounded-full"
-              type="submit"
-            >
+            <Button type="submit" variant="contained" color="primary">
               Add Category
-            </button>
+            </Button>
           </Box>
         </motion.div>
       </Box>
