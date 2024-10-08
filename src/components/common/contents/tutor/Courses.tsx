@@ -163,7 +163,7 @@ const Courses: React.FC = () => {
               originalPrice={course.price}
               tutorName={tutorData?.name as string}
               image={tutorData?.image as string}
-              thumbnail={thumbnails[course._id] || course.thumbnail} // Use pre-signed URL if available
+              thumbnail={thumbnails[course._id] || course.thumbnail} 
               lessonsCount={course.lessoncount}
               duration="2h 12m"
               enrollments={course.enrollments || 0}

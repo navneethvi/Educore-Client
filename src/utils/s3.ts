@@ -7,10 +7,10 @@ export const uploadFileToS3 = async (
   try {
     const options = {
       headers: {
-        "Content-Type": file.type,
+        "Content-Type": file.type || "application/octet-stream", // Fallback for MIME type
       },
     };
-
+    console.log("Uploading file:", file.name, "Size:", file.size);
     await axios.put(presignedUrl, file, options);
     console.log("File uploaded successfully");
   } catch (error) {

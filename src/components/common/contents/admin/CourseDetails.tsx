@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../../store/store";
 import { getCourseDetails } from "../../../../redux/admin/adminActions";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import { BASE_URL } from "../../../../utils/configs";
 
 const shimmerStyle = `
   @keyframes shimmer {
@@ -29,8 +30,11 @@ const CourseDetails: React.FC = () => {
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [imageLoading, setImageLoading] = useState(true);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const dispatch: AppDispatch = useDispatch();
   const { adminToken } = useSelector((state: RootState) => state.admin);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -41,7 +45,14 @@ const CourseDetails: React.FC = () => {
       );
 
       if (response.payload) {
+        const courseData = response.payload;
+
         setCourse(response.payload);
+
+        if (courseData.thumbnail) {
+          const url = await fetchThumbnailUrl(courseData.thumbnail);
+          setThumbnailUrl(url);
+        }
       }
       setLoading(false);
     };
@@ -60,6 +71,19 @@ const CourseDetails: React.FC = () => {
     setImageLoading(false);
   };
 
+  const fetchThumbnailUrl = async (filename: string) => {
+    try {
+      const response = await fetch(
+        `${BASE_URL}/course/get-presigned-url?filename=${filename}`
+      );
+      const { url } = await response.json();
+      return url;
+    } catch (error) {
+      console.error("Error fetching thumbnail URL:", error);
+      return null;
+    }
+  };
+
   return (
     <div className="course-details p-4 flex gap-4 h-full">
       <style>{shimmerStyle}</style>
@@ -68,7 +92,7 @@ const CourseDetails: React.FC = () => {
       <div className="w-9/12 h-full overflow-y-auto custom-scrollbar">
         {/* Course Title and Description */}
         <div className="p-4 bg-white shadow-md rounded-md">
-          <h2 className="text-2xl font-semibold mb-4">
+          <h2 className="text-2xl font-semibold mb-4 mt-6">
             {course?.title || <Skeleton width={200} />}
           </h2>
           <p className="course-description text-gray-600">
@@ -91,14 +115,20 @@ const CourseDetails: React.FC = () => {
                   <p className="mt-2 text-gray-500">Uploaded on: 10/10/24</p>
                   <p className="mt-2 text-gray-600">Goal: {lesson.goal}</p>
                 </div>
-                <a
-                  href={`/lessons/${lesson._id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() =>
+                    navigate(`/admin/lessons/${lesson._id}`, {
+                      state: {
+                        courseId: courseId,
+                        lessonIndex: index,
+                        lessonTitle: lesson.title || `Lesson ${index}`,
+                      },
+                    })
+                  }
                   className="mt-4 md:mt-0 bg-black text-white py-2 px-4 rounded inline-block"
                 >
                   Go to Lesson
-                </a>
+                </button>
               </div>
             </div>
           ))}
@@ -107,22 +137,20 @@ const CourseDetails: React.FC = () => {
       {/* Right Side (30%) */}
       <div className="w-3/12 flex flex-col gap-8">
         {/* Course Details */}
-        <div
-          className="p-6 bg-white shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
-        >
+        <div className="p-6 bg-white shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
           {imageLoading ? (
             <div className="shimmer h-40 rounded-md mb-4" />
           ) : (
             <img
-            src={course?.thumbnail || "https://via.placeholder.com/150"}
-            alt={course?.title || "Course Thumbnail"}
-            className="w-full h-40 object-cover mt-4 rounded-md mb-4"
-            onLoad={() => setImageLoading(false)}
-            onError={() => {
-              setImageLoading(false);
-              handleImageError();
-            }}
-          />
+              src={thumbnailUrl || "https://via.placeholder.com/150"}
+              alt={course?.title || "Course Thumbnail"}
+              className="w-full h-40 object-cover mt-4 rounded-md mb-4"
+              onLoad={() => setImageLoading(false)}
+              onError={() => {
+                setImageLoading(false);
+                handleImageError();
+              }}
+            />
           )}
 
           <h2 className="text-xl font-semibold text-gray-800">
@@ -137,9 +165,7 @@ const CourseDetails: React.FC = () => {
         </div>
 
         {/* Tutor Card */}
-        <div
-          className="p-4 bg-white shadow-md rounded-md text-center flex justify-center items-center space-x-4"
-        >
+        <div className="p-4 bg-white shadow-md rounded-md text-center flex justify-center items-center space-x-4">
           {loading ? (
             <Skeleton circle={true} height={64} width={64} />
           ) : (

@@ -11,6 +11,7 @@ import Tutors from "../components/common/contents/admin/Tutors";
 import Category from "../components/common/contents/admin/Category";
 
 import CourseDetails from "../components/common/contents/admin/CourseDetails";
+import LessonDetails from "../components/common/contents/admin/LessonDetails";
 
 const AdminRoutes: React.FC = () => {
   return (
@@ -29,6 +30,7 @@ const AdminRoutes: React.FC = () => {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="courses" element={<Courses />} />
         <Route path="/course/:courseId" element={<CourseDetails />} />{" "}
+        <Route path="/lessons/:lessonId" element={<LessonDetails />} />{" "}
         <Route path="students" element={<Students />} />
         <Route path="tutors" element={<Tutors />} />
         <Route path="category" element={<Category />} />

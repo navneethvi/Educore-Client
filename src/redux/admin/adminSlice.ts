@@ -41,7 +41,6 @@ interface Category {
   course: any[];
 }
 
-
 interface Lesson {
   title: string;
   goal: string;
@@ -51,6 +50,7 @@ interface Lesson {
 }
 
 interface Course {
+  tutor_data: any;
   _id: string;
   title: string;
   description: string;
@@ -60,11 +60,10 @@ interface Course {
   enrollments: number;
   thumbnail: string;
   is_approved: boolean;
-  lessons: Array<Lesson>; 
+  lessons: Array<Lesson>;
   tutor_id: string;
   __v: number;
 }
-
 
 interface PaginatedData<T> {
   data: T[];
@@ -181,7 +180,6 @@ const adminSlice = createSlice({
         state.loading = false;
         state.error = action.payload || "Something went wrong";
       })
-
 
       .addCase(fetchStudents.pending, (state) => {
         state.students.loading = true;
@@ -303,6 +301,13 @@ const adminSlice = createSlice({
       .addCase(getAllCourses.fulfilled, (state, action: any) => {
         state.loading = false;
         state.success = true;
+        console.log("payloaad", action.payload[0]?.is_approved);
+        
+        if (action.payload[0]?.is_approved) {
+          state.approvedCourses.data = action.payload;
+        } else {
+          state.pendingCourses.data = action.payload;
+        }
       })
       .addCase(getAllCourses.rejected, (state, action: PayloadAction<any>) => {
         state.loading = false;

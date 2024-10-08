@@ -36,7 +36,7 @@ const AddCourses: React.FC = () => {
   const [thumbnail, setThumbnail] = useState<string>("");
   const [croppedThumbnail, setCroppedThumbnail] = useState<string>("");
   const [open, setOpen] = useState(false);
-  const [loading2, setLoading] = useState(false)
+  const [loading2, setLoading] = useState(false);
 
   const cropperRef = useRef<ReactCropperElement>(null);
 
@@ -86,24 +86,25 @@ const AddCourses: React.FC = () => {
 
   function generateUniqueFilename(originalFilename: any): string {
     const timestamp = new Date().toISOString();
-    const sanitizedFilename = originalFilename.replace(/\s+/g, '-'); 
+
+    const filename =
+      typeof originalFilename === "string"
+        ? originalFilename
+        : originalFilename.name;
+
+    const sanitizedFilename = filename.replace(/\s+/g, "-");
     return `${timestamp}-${sanitizedFilename}`;
   }
-  
-  
 
   const uploadLessonFile = async (file: File): Promise<string> => {
     try {
-      
-
       const uniqueFilename = generateUniqueFilename(file);
 
       console.log("Requesting upload URL for:", uniqueFilename, file.type);
       console.log("File details:", file); // Check file object
-      const contentType = file.type || 'application/octet-stream'; // Use a default MIME type if file.type is undefined
+      const contentType = file.type || "application/octet-stream"; // Use a default MIME type if file.type is undefined
 
       console.log("Requesting upload URL for:", uniqueFilename, contentType);
-
 
       const { data } = await axios.get(`${BASE_URL}/course/get-upload-url`, {
         params: { key: uniqueFilename, contentType: contentType },
@@ -120,6 +121,24 @@ const AddCourses: React.FC = () => {
     }
   };
 
+  const dataURLtoBlob = (dataURL: string): Blob => {
+    const byteString = atob(dataURL.split(",")[1]);
+    const mimeString = dataURL.split(",")[0].split(":")[1].split(";")[0];
+  
+    const arrayBuffer = new ArrayBuffer(byteString.length);
+    const uintArray = new Uint8Array(arrayBuffer);
+  
+    for (let i = 0; i < byteString.length; i++) {
+      uintArray[i] = byteString.charCodeAt(i);
+    }
+  
+    return new Blob([arrayBuffer], { type: mimeString });
+  };
+
+  const blobToFile = (blob: Blob, fileName: string): File => {
+    return new File([blob], fileName, { type: blob.type, lastModified: Date.now() });
+  };
+
   const handleSubmit = async (values: any) => {
     setLoading(true); // Set loading to true when upload starts
     try {
@@ -129,17 +148,20 @@ const AddCourses: React.FC = () => {
       formData.append("category", values.category);
       formData.append("level", values.level);
       formData.append("price", values.price);
-  
+
       for (const [index, lesson] of values.lessons.entries()) {
         formData.append(`lessons[${index}][title]`, lesson.title);
         formData.append(`lessons[${index}][goal]`, lesson.goal);
-  
+
+        console.log("video---------->", lesson.video);
+
         if (lesson.video) {
           const videoFilename = await uploadLessonFile(lesson.video);
           formData.append(`lessons[${index}][video]`, videoFilename);
         }
         if (lesson.materials) {
           const materialsFilename = await uploadLessonFile(lesson.materials);
+
           formData.append(`lessons[${index}][materials]`, materialsFilename);
         }
         if (lesson.homework) {
@@ -147,12 +169,17 @@ const AddCourses: React.FC = () => {
           formData.append(`lessons[${index}][homework]`, homeworkFilename);
         }
       }
-  
-      if (values.thumbnail) {
-        const thumbnailFilename = await uploadLessonFile(values.thumbnail);
+
+      console.log("values.thumbnail==========>", values.thumbnail);
+      console.log("thumbnail==========>", thumbnail);
+
+      if (croppedThumbnail) {
+        const thumbnailBlob = dataURLtoBlob(croppedThumbnail);
+        const thumbnailFile = blobToFile(thumbnailBlob, "thumbnail.png");
+        const thumbnailFilename = await uploadLessonFile(thumbnailFile);
         formData.append("thumbnail", thumbnailFilename);
       }
-  
+
       await dispatch(
         tutorCreateCourse({ token: tutorToken as string, courseData: formData })
       );
@@ -162,70 +189,70 @@ const AddCourses: React.FC = () => {
       setLoading(false); // Set loading to false when upload completes
     }
   };
-  
 
   return (
     <>
-       <div className="heading">
+      <div className="heading">
         <h1 className="text-2xl font-semibold">Add Courses</h1>
       </div>
 
-      {loading || loading2 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(0, 0, 0, 0.7)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1000,
-          }}
-        >
+      {loading ||
+        (loading2 && (
           <motion.div
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1.2 }}
-            transition={{
-              repeat: Infinity,
-              duration: 1.5,
-              repeatType: "reverse",
-            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              backgroundColor: "rgba(0, 0, 0, 0.7)",
               display: "flex",
-              flexDirection: "column",
+              justifyContent: "center",
               alignItems: "center",
-              backgroundColor: "#fff",
-              padding: "30px",
-              borderRadius: "15px",
-              boxShadow: "0px 0px 15px rgba(0, 0, 0, 0.3)",
+              zIndex: 1000,
             }}
           >
             <motion.div
-              initial={{ rotate: 0 }}
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-              style={{
-                width: "50px",
-                height: "50px",
-                border: "5px solid #1976d2",
-                borderTop: "5px solid transparent",
-                borderRadius: "50%",
-                marginBottom: "20px",
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1.2 }}
+              transition={{
+                repeat: Infinity,
+                duration: 1.5,
+                repeatType: "reverse",
               }}
-            ></motion.div>
-            <h2 style={{ margin: 0 }}>Uploading Course...</h2>
-            <p style={{ marginTop: "10px", fontSize: "14px", color: "#555" }}>
-              Please wait while we upload your course.
-            </p>
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                backgroundColor: "#fff",
+                padding: "30px",
+                borderRadius: "15px",
+                boxShadow: "0px 0px 15px rgba(0, 0, 0, 0.3)",
+              }}
+            >
+              <motion.div
+                initial={{ rotate: 0 }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                style={{
+                  width: "50px",
+                  height: "50px",
+                  border: "5px solid #1976d2",
+                  borderTop: "5px solid transparent",
+                  borderRadius: "50%",
+                  marginBottom: "20px",
+                }}
+              ></motion.div>
+              <h2 style={{ margin: 0 }}>Uploading Course...</h2>
+              <p style={{ marginTop: "10px", fontSize: "14px", color: "#555" }}>
+                Please wait while we upload your course.
+              </p>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
+        ))}
 
       <Formik
         initialValues={{
@@ -426,17 +453,23 @@ const AddCourses: React.FC = () => {
                                       component="label"
                                       startIcon={<Upload />}
                                     >
-                                      {values.lessons[index].video || "Upload"}
+                                      {(values.lessons[index].video &&
+                                        (
+                                          values.lessons[index]
+                                            .video as unknown as File
+                                        ).name) ||
+                                        "Upload"}
                                       <input
                                         type="file"
                                         name={`lessons[${index}][video]`}
                                         hidden
-                                        onChange={(e) =>
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
                                           setFieldValue(
                                             `lessons.${index}.video`,
-                                            e.target.files?.[0]?.name || ""
-                                          )
-                                        }
+                                            file
+                                          );
+                                        }}
                                       />
                                     </Button>
                                   </Box>
@@ -457,18 +490,24 @@ const AddCourses: React.FC = () => {
                                       component="label"
                                       startIcon={<Upload />}
                                     >
-                                      {values.lessons[index].materials ||
+                                      {(values.lessons[index].materials &&
+                                        (
+                                          values.lessons[index]
+                                            .materials as unknown as File
+                                        ).name) ||
                                         "Upload"}
+
                                       <input
                                         type="file"
                                         name={`lessons[${index}][materials]`}
                                         hidden
-                                        onChange={(e) =>
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
                                           setFieldValue(
                                             `lessons.${index}.materials`,
-                                            e.target.files?.[0]?.name || ""
-                                          )
-                                        }
+                                            file
+                                          );
+                                        }}
                                       />
                                     </Button>
                                   </Box>
@@ -489,18 +528,24 @@ const AddCourses: React.FC = () => {
                                       component="label"
                                       startIcon={<Upload />}
                                     >
-                                      {values.lessons[index].homework ||
+                                      {(values.lessons[index].homework &&
+                                        (
+                                          values.lessons[index]
+                                            .homework as unknown as File
+                                        ).name) ||
                                         "Upload"}
+
                                       <input
                                         type="file"
                                         name={`lessons[${index}][homework]`}
                                         hidden
-                                        onChange={(e) =>
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
                                           setFieldValue(
                                             `lessons.${index}.homework`,
-                                            e.target.files?.[0]?.name || ""
-                                          )
-                                        }
+                                            file
+                                          );
+                                        }}
                                       />
                                     </Button>
                                   </Box>
@@ -595,4 +640,3 @@ const AddCourses: React.FC = () => {
 };
 
 export default AddCourses;
-

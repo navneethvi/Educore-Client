@@ -13,6 +13,7 @@ import {
   getCourseDetailsService,
   adminApproveCourseService,
   adminLogoutService,
+  adminFetchLessonDetailsService,
 } from "./adminServices";
 
 import {
@@ -175,13 +176,14 @@ export const toggleBlockStudent = createAsyncThunk<
 
 export const getAllCourses = createAsyncThunk<
   ApiResponse<any>,
-  { token: string },
+  { token: string, status: boolean },
   {
     rejectValue: string;
   }
->("getAllCourses", async ({ token }, thunkAPI) => {
+>("getAllCourses", async ({ token, status }, thunkAPI) => {
   try {
-    const response = await getALlCoursesService(token);
+    console.log("status in getAllcourse ===>", status);
+    const response = await getALlCoursesService(token, status);
     return response;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(
@@ -216,6 +218,27 @@ export const adminApproveCourse = createAsyncThunk<
 >("adminApproveCourse", async ({ token, courseId }, thunkAPI) => {
   try {
     const response = await adminApproveCourseService(token, courseId);
+    return response;
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue(
+      error.message || error.response?.data?.error || "An error occurred"
+    );
+  }
+});
+
+export const adminFetchLessonDetails = createAsyncThunk<
+  ApiResponse<any>,
+  { token: string; courseId: string; lessonIndex: number }, // Adjust parameters
+  {
+    rejectValue: string;
+  }
+>("adminFetchLessonDetails", async ({ token, courseId, lessonIndex }, thunkAPI) => {
+  try {
+    console.log("hereeeeeeeeeeeeeeeeeee");
+    
+    const response = await adminFetchLessonDetailsService(token, courseId, lessonIndex);
+    console.log("res in action", response);
+    
     return response;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(

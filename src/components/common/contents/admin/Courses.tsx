@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { adminApproveCourse, getAllCourses } from "../../../../redux/admin/adminActions";
+import {
+  adminApproveCourse,
+  getAllCourses,
+} from "../../../../redux/admin/adminActions";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../../store/store";
 import { styled } from "@mui/material/styles";
@@ -15,6 +18,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Alert from "@mui/material/Alert";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
+import { BASE_URL } from "../../../../utils/configs";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -46,21 +50,33 @@ const shimmerStyle = `
   }
 `;
 
+interface Lesson {
+  title: string;
+  goal: string;
+  video: string;
+  materials: string;
+  homework: string;
+}
+
 interface Course {
   _id: string;
   title: string;
+  description: string;
   category: string;
+  level: string;
   price: number;
-  tutor_data: { name: string }[];
-  is_approved: boolean;
-  enrollments?: number;
+  enrollments: number;
   thumbnail: string;
+  is_approved: boolean;
+  lessons: Array<Lesson>;
+  tutor_id: string;
+  __v: number;
 }
 
 const Courses: React.FC = () => {
   const [showApproved, setShowApproved] = useState(true);
-  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [thumbnails, setThumbnails] = useState<{ [key: string]: string }>({});
   const [imageLoadingMap, setImageLoadingMap] = useState<Map<string, boolean>>(
     new Map<string, boolean>()
   );
@@ -68,84 +84,118 @@ const Courses: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { adminToken } = useSelector((state: RootState) => state.admin);
+  const { adminToken, approvedCourses, pendingCourses } = useSelector(
+    (state: RootState) => state.admin
+  );
+
+  const courses = showApproved ? approvedCourses?.data : pendingCourses?.data;
+
+  const fetchThumbnailUrl = async (filename: string) => {
+    try {
+      const response = await fetch(
+        `${BASE_URL}/course/get-presigned-url?filename=${filename}`
+      );
+      const { url } = await response.json();
+      return url;
+    } catch (error) {
+      console.error("Error fetching thumbnail URL:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const loadThumbnails = async () => {
+      const courseList = showApproved
+        ? approvedCourses?.data || []
+        : pendingCourses?.data || [];
+
+      const thumbnailUrls = await Promise.all(
+        courseList.map(async (course) => {
+          if (course.thumbnail) {
+            const url = await fetchThumbnailUrl(course.thumbnail);
+            return { id: course._id, url };
+          }
+          return { id: course._id, url: "" };
+        })
+      );
+
+      const thumbnailMap = thumbnailUrls.reduce(
+        (acc, { id, url }) => {
+          acc[id] = url;
+          return acc;
+        },
+        {} as { [key: string]: string }
+      );
+
+      setThumbnails(thumbnailMap);
+    };
+
+    loadThumbnails();
+  }, [showApproved, approvedCourses?.data, pendingCourses?.data]);
 
   useEffect(() => {
     const fetchCourses = async () => {
       setLoading(true);
       const token = adminToken as string;
 
-      const response: any = await dispatch(getAllCourses({ token }));
-      console.log("response ===>", response);
-
-      if (response.payload) {
-        setCourses(response.payload);
-
-        // Initialize image loading state
+      try {
+        await dispatch(getAllCourses({ token, status: showApproved }));
         const initialLoadingMap: Map<string, boolean> = new Map(
-          response.payload.map((course: Course) => [course._id, true])
+          (courses || []).map((course: Course) => [course._id, true])
         );
         setImageLoadingMap(initialLoadingMap);
-      } else {
-        setCourses([]);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     fetchCourses();
-  }, [dispatch, adminToken]);
+  }, [dispatch, adminToken, showApproved]);
 
   const handleCourseClick = (courseId: string) => {
-    console.log("Course ID:", courseId);
     navigate(`/admin/course/${courseId}`);
   };
 
   const handleApprove = async (courseId: string) => {
     const token = adminToken as string;
-  
+
     Swal.fire({
-      title: 'Are you sure you want to approve this course?',
+      title: "Are you sure you want to approve this course?",
       text: "This action will approve the course and make it available to students.",
-      icon: 'warning',
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#bbb',
-      confirmButtonText: 'Yes, approve it!',
-      cancelButtonText: 'No, cancel!',
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#bbb",
+      confirmButtonText: "Yes, approve it!",
+      cancelButtonText: "No, cancel!",
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           await dispatch(adminApproveCourse({ token, courseId }));
           Swal.fire({
-            title: 'Approved!',
-            text: 'The course has been approved successfully.',
-            icon: 'success',
-            confirmButtonText: 'OK',
+            title: "Approved!",
+            text: "The course has been approved successfully.",
+            icon: "success",
+            confirmButtonText: "OK",
           });
         } catch (error) {
           Swal.fire({
-            title: 'Error!',
-            text: 'There was an error approving the course. Please try again.',
-            icon: 'error',
-            confirmButtonText: 'OK',
+            title: "Error!",
+            text: "There was an error approving the course. Please try again.",
+            icon: "error",
+            confirmButtonText: "OK",
           });
         }
       }
     });
   };
-  
 
   const handleReject = async (courseId: string) => {
     const token = adminToken as string;
-    // await dispatch(rejectCourse({ courseId, token }));
-    // Optionally, refetch courses after rejection
-    // await fetchCourses();
+    // Implement reject logic if needed
   };
-
-  const filteredCourses = showApproved
-    ? courses.filter((course) => course.is_approved)
-    : courses.filter((course) => !course.is_approved);
 
   const handleImageLoad = (courseId: string) => {
     setImageLoadingMap((prev) => new Map(prev).set(courseId, false));
@@ -161,7 +211,9 @@ const Courses: React.FC = () => {
         <button
           onClick={() => setShowApproved(!showApproved)}
           className={`px-4 py-2 rounded text-white ${
-            showApproved ? "bg-gray-800 hover:bg-gray-700" : "bg-gray-600 hover:bg-gray-500"
+            showApproved
+              ? "bg-gray-800 hover:bg-gray-700"
+              : "bg-gray-600 hover:bg-gray-500"
           }`}
         >
           {showApproved ? "Show Pending Courses" : "Show Approved Courses"}
@@ -196,17 +248,13 @@ const Courses: React.FC = () => {
                       Enrollments
                     </StyledTableCell>
                   )}
-                  <StyledTableCell align="center">
-                    Approval
-                  </StyledTableCell>
-                  <StyledTableCell align="center">
-                    Actions
-                  </StyledTableCell>
+                  <StyledTableCell align="center">Approval</StyledTableCell>
+                  <StyledTableCell align="center">Actions</StyledTableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredCourses.length > 0 ? (
-                  filteredCourses.map((course) => (
+                {courses && courses.length > 0 ? (
+                  courses.map((course) => (
                     <StyledTableRow key={course._id}>
                       <StyledTableCell align="left">
                         <div className="shimmer-wrapper">
@@ -214,7 +262,7 @@ const Courses: React.FC = () => {
                             <div className="shimmer" />
                           )}
                           <img
-                            src={course.thumbnail}
+                            src={thumbnails[course._id] || ""}
                             alt={course.title}
                             className={`image ${
                               imageLoadingMap.get(course._id)
@@ -233,54 +281,43 @@ const Courses: React.FC = () => {
                         {course.category}
                       </StyledTableCell>
                       <StyledTableCell align="center">
-                        ${course.price}
+                        {course.price}
                       </StyledTableCell>
                       <StyledTableCell align="center">
-                        {course.tutor_data
-                          .map((tutor) => tutor.name)
-                          .join(", ")}
+                        {course.tutor_data[0].name}
                       </StyledTableCell>
                       {showApproved && (
                         <StyledTableCell align="center">
-                          {course.enrollments || 0}
+                          {course.enrollments}
                         </StyledTableCell>
                       )}
                       <StyledTableCell align="center">
-                       {!course.is_approved? (
-                          <button
-                          onClick={() => handleApprove(course._id)}
-                          className="bg-purple-600 text-white text-xs px-6 py-2 rounded-full"
-                        >
-                          Approve
-                        </button>
-                       ): (
-                        <button
-                        onClick={() => handleReject(course._id)}
-                        className="bg-red-600 text-white text-xs px-6 py-2 rounded-full"
-                      >
-                        Reject
-                      </button>
-                       )}
+                        {course.is_approved ? "Yes" : "No"}
                       </StyledTableCell>
                       <StyledTableCell align="center">
-                       
-                        
-                        
                         <button
                           onClick={() => handleCourseClick(course._id)}
-                          className="bg-gray-800 text-white text-xs px-6 py-2 rounded-full "
+                          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                         >
-                          Go to Course
+                          View
                         </button>
+                        {!course.is_approved && (
+                          <button
+                            onClick={() => handleApprove(course._id)}
+                            className="ml-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                          >
+                            Approve
+                          </button>
+                        )}
                       </StyledTableCell>
                     </StyledTableRow>
                   ))
                 ) : (
-                  <TableRow>
+                  <StyledTableRow>
                     <StyledTableCell colSpan={8} align="center">
-                      <Alert severity="info">No courses available</Alert>
+                      <Alert severity="info">No courses found.</Alert>
                     </StyledTableCell>
-                  </TableRow>
+                  </StyledTableRow>
                 )}
               </TableBody>
             </Table>

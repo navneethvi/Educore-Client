@@ -2,7 +2,12 @@ import axios from "axios";
 
 import { BASE_URL } from "../../utils/configs";
 
-import { ApiResponse, CategoriesResponse, Category, SigninData } from "../../types/types";
+import {
+  ApiResponse,
+  CategoriesResponse,
+  Category,
+  SigninData,
+} from "../../types/types";
 
 const adminSigninService = async (data: SigninData) => {
   try {
@@ -122,7 +127,6 @@ const getCategoriesDataService = async (
   }
 };
 
-
 const deleteCategoryService = async (
   token: string,
   category_id: string
@@ -182,14 +186,20 @@ const toggleBlockStudentService = async (
 };
 
 const getALlCoursesService = async (
-  token: string
+  token: string,
+  status: boolean
 ): Promise<ApiResponse<any>> => {
   try {
-    const response = await axios.get(`${BASE_URL}/course/get_courses`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    console.log("status in getallcourse service===>", status);
+
+    const response = await axios.get(
+      `${BASE_URL}/course/get_courses/${status}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     console.log("response in service: ", response.data);
     return response.data;
   } catch (error: any) {
@@ -202,11 +212,14 @@ const getCourseDetailsService = async (
   id: string
 ): Promise<ApiResponse<any>> => {
   try {
-    const response = await axios.get(`${BASE_URL}/course/course_details/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await axios.get(
+      `${BASE_URL}/course/course_details/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     console.log("response in service: ", response.data);
     return response.data;
   } catch (error: any) {
@@ -219,17 +232,46 @@ const adminApproveCourseService = async (
   id: string
 ): Promise<ApiResponse<any>> => {
   try {
-    const response = await axios.patch(`${BASE_URL}/course/approve_course/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await axios.patch(
+      `${BASE_URL}/course/approve_course/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     console.log("response in service: ", response.data);
     return response.data;
   } catch (error: any) {
     throw error.response?.data || { message: "An error occurred" };
   }
 };
+
+const adminFetchLessonDetailsService = async (
+  token: string,
+  courseId: string,
+  lessonIndex: number
+): Promise<ApiResponse<any>> => {
+  try {
+    console.log("Fetching lesson details...");
+        const response = await axios.post(`${BASE_URL}/course/${courseId}/lesson_details`, 
+    {
+      lessonIndex: lessonIndex, 
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("Response: ", response);
+
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || { message: "An error occurred" };
+  }
+};
+
 
 export {
   adminSigninService,
@@ -243,5 +285,6 @@ export {
   toggleBlockStudentService,
   getALlCoursesService,
   getCourseDetailsService,
-  adminApproveCourseService
+  adminApproveCourseService,
+  adminFetchLessonDetailsService,
 };
