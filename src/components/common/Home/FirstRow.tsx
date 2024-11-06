@@ -16,7 +16,7 @@ const FirstRow: React.FC = () => {
             <span className="block font-reem-kufi text-gray-700 mt-4 md:mt-6">
               Journey of
             </span>
-            <span className="block font-reem-kufi text-gray-300 mt-4 md:mt-6 bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 rounded-br-3xl inline-block">
+            <span className="font-reem-kufi text-gray-300 mt-4 md:mt-6 bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 rounded-br-3xl inline-block">
               Knowledge
             </span>
           </h1>

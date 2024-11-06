@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import CourseCard from "../../CourseCard";
-import { tutorFetchCourses, tutorDeleteCourse } from "../../../../redux/tutors/tutorActions";
+import {
+  tutorFetchCourses,
+  tutorDeleteCourse,
+} from "../../../../redux/tutors/tutorActions";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../../store/store";
 import { useNavigate } from "react-router-dom";
@@ -43,24 +46,28 @@ const Courses: React.FC = () => {
     tutorToken,
     tutorData,
     showApproved,
-    approvedCourses.data.length,
-    pendingCourses.data.length,
+    approvedCourses.data,
+    pendingCourses.data,
   ]);
 
   const fetchThumbnailUrl = async (filename: string) => {
     try {
-      const response = await fetch(`${BASE_URL}/course/get-presigned-url?filename=${filename}`);
+      const response = await fetch(
+        `${BASE_URL}/course/get-presigned-url?filename=${filename}`
+      );
       const { url } = await response.json();
       return url;
     } catch (error) {
-      console.error('Error fetching thumbnail URL:', error);
+      console.error("Error fetching thumbnail URL:", error);
       return null;
     }
   };
 
   useEffect(() => {
     const loadThumbnails = async () => {
-      const courseList = showApproved ? approvedCourses.data : pendingCourses.data;
+      const courseList = showApproved
+        ? approvedCourses.data
+        : pendingCourses.data;
 
       const thumbnailUrls = await Promise.all(
         courseList.map(async (course) => {
@@ -68,7 +75,7 @@ const Courses: React.FC = () => {
             const url = await fetchThumbnailUrl(course.thumbnail);
             return { id: course._id, url };
           }
-          return { id: course._id, url: '' };
+          return { id: course._id, url: "" };
         })
       );
 
@@ -163,7 +170,7 @@ const Courses: React.FC = () => {
               originalPrice={course.price}
               tutorName={tutorData?.name as string}
               image={tutorData?.image as string}
-              thumbnail={thumbnails[course._id] || course.thumbnail} 
+              thumbnail={thumbnails[course._id] || course.thumbnail}
               lessonsCount={course.lessoncount}
               duration="2h 12m"
               enrollments={course.enrollments || 0}

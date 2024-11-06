@@ -101,8 +101,8 @@ const AddCourses: React.FC = () => {
       const uniqueFilename = generateUniqueFilename(file);
 
       console.log("Requesting upload URL for:", uniqueFilename, file.type);
-      console.log("File details:", file); // Check file object
-      const contentType = file.type || "application/octet-stream"; // Use a default MIME type if file.type is undefined
+      console.log("File details:", file);
+      const contentType = file.type || "application/octet-stream";
 
       console.log("Requesting upload URL for:", uniqueFilename, contentType);
 
@@ -124,19 +124,22 @@ const AddCourses: React.FC = () => {
   const dataURLtoBlob = (dataURL: string): Blob => {
     const byteString = atob(dataURL.split(",")[1]);
     const mimeString = dataURL.split(",")[0].split(":")[1].split(";")[0];
-  
+
     const arrayBuffer = new ArrayBuffer(byteString.length);
     const uintArray = new Uint8Array(arrayBuffer);
-  
+
     for (let i = 0; i < byteString.length; i++) {
       uintArray[i] = byteString.charCodeAt(i);
     }
-  
+
     return new Blob([arrayBuffer], { type: mimeString });
   };
 
   const blobToFile = (blob: Blob, fileName: string): File => {
-    return new File([blob], fileName, { type: blob.type, lastModified: Date.now() });
+    return new File([blob], fileName, {
+      type: blob.type,
+      lastModified: Date.now(),
+    });
   };
 
   const handleSubmit = async (values: any) => {
@@ -153,7 +156,6 @@ const AddCourses: React.FC = () => {
         formData.append(`lessons[${index}][title]`, lesson.title);
         formData.append(`lessons[${index}][goal]`, lesson.goal);
 
-        console.log("video---------->", lesson.video);
 
         if (lesson.video) {
           const videoFilename = await uploadLessonFile(lesson.video);

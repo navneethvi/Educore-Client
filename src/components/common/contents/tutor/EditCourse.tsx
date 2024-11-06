@@ -23,11 +23,18 @@ import "cropperjs/dist/cropper.css";
 import { Formik, Field, Form, FieldArray } from "formik";
 import * as Yup from "yup";
 import Swal from "sweetalert2";
+import { fetchAllCategories } from "../../../../redux/admin/adminActions";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../../store/store";
 import { useNavigate, useParams } from "react-router-dom";
-import { tutorFetchCourseDetails } from "../../../../redux/tutors/tutorActions"; // Import the thunk action
+import {
+  tutorEditCourse,
+  tutorFetchCourseDetails,
+} from "../../../../redux/tutors/tutorActions"; // Import the thunk action
 import { courseValidationSchema } from "../../../../validations/courseValidation";
+import { BASE_URL } from "../../../../utils/configs";
+import { uploadFileToS3 } from "../../../../utils/s3";
+import axios from "axios";
 
 interface LessonType {
   title: string;
@@ -40,15 +47,17 @@ interface LessonType {
 const EditCourse: React.FC = () => {
   const [thumbnail, setThumbnail] = useState<string>("");
   const [croppedThumbnail, setCroppedThumbnail] = useState<string>("");
-  const [courseDetails, setCourseDetails] = useState<any>(null); // Manage course details locally
+  const [courseDetails, setCourseDetails] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [loading2, setLoading2] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { courseId } = useParams();
   const [open, setOpen] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
 
   const cropperRef = useRef<ReactCropperElement>(null);
   const navigate = useNavigate();
-  const dispatch: AppDispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const { tutorToken } = useSelector((state: RootState) => state.tutor);
 
@@ -74,6 +83,58 @@ const EditCourse: React.FC = () => {
     fetchCourseDetails();
   }, [courseId, dispatch]);
 
+  function generateUniqueFilename(originalFilename: any): string {
+    const timestamp = new Date().toISOString();
+
+    const filename =
+      typeof originalFilename === "string"
+        ? originalFilename
+        : originalFilename.name;
+
+    const sanitizedFilename = filename.replace(/\s+/g, "-");
+    return `${timestamp}-${sanitizedFilename}`;
+  }
+
+  const uploadLessonFile = async (file: File): Promise<string> => {
+    try {
+      console.log("invoked", file);
+
+      const uniqueFilename = generateUniqueFilename(file);
+
+      console.log("Requesting upload URL for:", uniqueFilename, file.type);
+      console.log("File details:", file);
+      const contentType = file.type || "application/octet-stream";
+
+      console.log("Requesting upload URL for:", uniqueFilename, contentType);
+
+      const { data } = await axios.get(`${BASE_URL}/course/get-upload-url`, {
+        params: { key: uniqueFilename, contentType: contentType },
+      });
+
+      const presignedUrl = data.url;
+
+      await uploadFileToS3(presignedUrl, file);
+
+      return uniqueFilename;
+    } catch (error) {
+      console.error("Error uploading file to S3:", error);
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await dispatch(fetchAllCategories()).unwrap();
+        setCategories(response);
+      } catch (err: any) {
+        console.error("Error fetching categories:", err.message);
+      }
+    };
+
+    fetchCategories();
+  }, [dispatch]);
+
   useEffect(() => {
     if (courseDetails) {
       setThumbnail(courseDetails.thumbnail || "");
@@ -82,8 +143,23 @@ const EditCourse: React.FC = () => {
   }, [courseDetails]);
 
   useEffect(() => {
+    const fetchThumbnailFromFilename = async () => {
+      if (courseDetails?.thumbnail) {
+        const url = await fetchThumbnailUrl(courseDetails.thumbnail);
+        if (url) {
+          setThumbnail(url);
+          setCroppedThumbnail(url);
+        }
+      }
+    };
+
+    if (courseDetails) {
+      fetchThumbnailFromFilename();
+    }
+  }, [courseDetails]);
+
+  useEffect(() => {
     if (courseDetails && courseDetails.updated) {
-      // Adjust based on your response
       Swal.fire({
         title: "Course Updated!",
         text: "Your course has been successfully updated.",
@@ -103,6 +179,7 @@ const EditCourse: React.FC = () => {
       const reader = new FileReader();
       reader.onload = () => {
         setThumbnail(reader.result as string);
+        setOpen(true);
       };
       reader.readAsDataURL(file);
     }
@@ -117,39 +194,126 @@ const EditCourse: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (values: any) => {
-    const formData = new FormData();
-    formData.append("title", values.title);
-    formData.append("description", values.description);
-    formData.append("category", values.category);
-    formData.append("level", values.level);
-    formData.append("price", values.price);
+  const truncateTitle = (title: string, maxLength: number) => {
+    if (!title) return "";
+    if (title.length > maxLength) {
+      return title.slice(0, maxLength) + "...";
+    }
+    return title;
+  };
 
-    if (croppedThumbnail) {
-      formData.append("thumbnail", croppedThumbnail);
+  function dataURLtoBlob(dataUrl: string) {
+    const parts = dataUrl.split(",");
+    if (parts.length !== 2) {
+      throw new Error("Invalid Data URL");
     }
 
-    values.lessons.forEach((lesson: any, index: number) => {
+    const mimeMatch = parts[0].match(/:(.*?);/);
+    if (!mimeMatch || mimeMatch.length < 2) {
+      throw new Error("Invalid MIME type in Data URL");
+    }
+
+    const mimeType = mimeMatch[1]; // Get MIME type safely
+    const byteString = atob(parts[1]); // Only the Base64 part
+
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+
+    return new Blob([ab], { type: mimeType });
+  }
+
+  const blobToFile = (blob: Blob, fileName: string): File => {
+    return new File([blob], fileName, {
+      type: blob.type,
+      lastModified: Date.now(),
+    });
+  };
+
+  const fetchThumbnailUrl = async (filename: string) => {
+    try {
+      const response = await fetch(
+        `${BASE_URL}/course/get-presigned-url?filename=${filename}`
+      );
+      const { url } = await response.json();
+      return url;
+    } catch (error) {
+      console.error("Error fetching thumbnail URL:", error);
+      return null;
+    }
+  };
+  const handleSubmit = async (values: any) => {
+    setLoading2(true);
+    console.log("Form values:", values);
+    console.log("Course details:", courseDetails);
+    const formData = new FormData();
+
+    formData.append("title", values.title.trim());
+    formData.append("description", values.description.trim());
+    formData.append("category", values.category);
+    formData.append("level", values.level);
+    formData.append("price", values.price.toString());
+
+    for (const [index, lesson] of values.lessons.entries()) {
       formData.append(`lessons[${index}][title]`, lesson.title);
       formData.append(`lessons[${index}][goal]`, lesson.goal);
-      if (lesson.video) {
+
+      if (lesson.video instanceof File) {
+        const videoFilename = await uploadLessonFile(lesson.video);
+        formData.append(`lessons[${index}][video]`, videoFilename);
+      } else {
         formData.append(`lessons[${index}][video]`, lesson.video);
       }
-      if (lesson.materials) {
+
+      if (lesson.materials instanceof File) {
+        const materialsFilename = await uploadLessonFile(lesson.materials);
+        formData.append(`lessons[${index}][materials]`, materialsFilename);
+      } else {
         formData.append(`lessons[${index}][materials]`, lesson.materials);
       }
-      if (lesson.homework) {
+
+      if (lesson.homework instanceof File) {
+        const homeworkFilename = await uploadLessonFile(lesson.homework);
+        formData.append(`lessons[${index}][homework]`, homeworkFilename);
+      } else {
         formData.append(`lessons[${index}][homework]`, lesson.homework);
       }
-    });
+    }
+
+    if (croppedThumbnail && croppedThumbnail.startsWith("data:image/")) {
+      const thumbnailBlob = dataURLtoBlob(croppedThumbnail);
+      const thumbnailFile = blobToFile(thumbnailBlob, "thumbnail.png");
+      const thumbnailFilename = await uploadLessonFile(thumbnailFile);
+      formData.append("thumbnail", thumbnailFilename);
+    } else {
+      formData.append("thumbnail", courseDetails.thumbnail);
+    }
 
     try {
-      // Uncomment and use the actual dispatch function
-      // await dispatch(
-      //   tutorEditCourse({ token: tutorToken as string, courseId, courseData: formData })
-      // );
+      // Dispatch the update course action
+      await dispatch(
+        tutorEditCourse({
+          token: tutorToken as string,
+          courseId: courseId as string,
+          courseData: formData,
+        })
+      );
+      setLoading2(false);
+
+      Swal.fire({
+        title: "Success!",
+        text: "Your course has been successfully updated.",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
+
+      navigate("/tutor/courses");
     } catch (error) {
       console.error("Failed to update course:", error);
+
+      // Show error message if something goes wrong
       Swal.fire({
         title: "Error!",
         text: "There was an error updating your course. Please try again.",
@@ -158,6 +322,114 @@ const EditCourse: React.FC = () => {
       });
     }
   };
+
+  if (loading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0.8 }}
+        animate={{ opacity: 1 }}
+        transition={{
+          duration: 0.6,
+          repeat: Infinity,
+          repeatType: "mirror",
+          ease: "easeInOut",
+        }}
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        {/* Bouncing Circles */}
+        <motion.div
+          style={{
+            display: "flex",
+            gap: "10px", // Smaller gap between the balls
+          }}
+        >
+          {[...Array(3)].map((_, index) => (
+            <motion.div
+              key={index}
+              style={{
+                width: "12px", // Smaller ball size
+                height: "12px",
+                borderRadius: "50%",
+                backgroundColor: "grey", // Grey color for the balls
+              }}
+              animate={{
+                y: [0, -10, 0], // Smaller bounce height
+              }}
+              transition={{
+                duration: 0.5,
+                repeat: Infinity,
+                repeatDelay: 0.2 * index,
+              }}
+            />
+          ))}
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  if (loading2) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 1000,
+        }}
+      >
+        <motion.div
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1.2 }}
+          transition={{
+            repeat: Infinity,
+            duration: 1.5,
+            repeatType: "reverse",
+          }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            backgroundColor: "#fff",
+            padding: "30px",
+            borderRadius: "15px",
+            boxShadow: "0px 0px 15px rgba(0, 0, 0, 0.3)",
+          }}
+        >
+          <motion.div
+            initial={{ rotate: 0 }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+            style={{
+              width: "50px",
+              height: "50px",
+              border: "5px solid #1976d2",
+              borderTop: "5px solid transparent",
+              borderRadius: "50%",
+              marginBottom: "20px",
+            }}
+          ></motion.div>
+          <h2 style={{ margin: 0 }}>Updating Course...</h2>
+          <p style={{ marginTop: "10px", fontSize: "14px", color: "#555" }}>
+            Please wait while we updating your course.
+          </p>
+        </motion.div>
+      </motion.div>
+    );
+  }
 
   if (!courseDetails) {
     return <Typography variant="h6">Course not found</Typography>;
@@ -229,8 +501,8 @@ const EditCourse: React.FC = () => {
         initialValues={{
           title: courseDetails.title || "",
           description: courseDetails.description || "",
-          category: courseDetails.category || "",
-          level: courseDetails.level || "",
+          category: courseDetails.category,
+          level: courseDetails.level,
           price: courseDetails.price || "",
           lessons: courseDetails.lessons || [
             { title: "", goal: "", video: "", materials: "", homework: "" },
@@ -267,9 +539,11 @@ const EditCourse: React.FC = () => {
                     <FormControl fullWidth sx={{ mb: 3 }}>
                       <InputLabel>Category</InputLabel>
                       <Field name="category" as={Select} label="Category">
-                        <MenuItem value="programming">Programming</MenuItem>
-                        <MenuItem value="design">Design</MenuItem>
-                        <MenuItem value="marketing">Marketing</MenuItem>
+                        {categories.map((category) => (
+                          <MenuItem key={category._id} value={category.name}>
+                            {category.name}
+                          </MenuItem>
+                        ))}
                       </Field>
                     </FormControl>
                     <FormControl fullWidth sx={{ mb: 3 }}>
@@ -317,11 +591,11 @@ const EditCourse: React.FC = () => {
                             onChange={handleThumbnailUpload}
                           />
                         </Button>
-                        {croppedThumbnail && (
+                        {(croppedThumbnail || thumbnail) && (
                           <Box
                             component="img"
-                            src={croppedThumbnail}
-                            alt="Cropped Thumbnail"
+                            src={croppedThumbnail || thumbnail}
+                            alt="Thumbnail"
                             sx={{
                               width: 70,
                               height: 40,
@@ -429,18 +703,24 @@ const EditCourse: React.FC = () => {
                                         component="label"
                                         startIcon={<Upload />}
                                       >
-                                        {values.lessons[index].video ||
-                                          "Upload"}
+                                        {truncateTitle(
+                                          values.lessons[index].video.name ||
+                                            "Upload",
+                                          20
+                                        )}
                                         <input
                                           type="file"
                                           name={`lessons[${index}][video]`}
                                           hidden
-                                          onChange={(e) =>
-                                            setFieldValue(
-                                              `lessons.${index}.video`,
-                                              e.target.files?.[0]?.name || ""
-                                            )
-                                          }
+                                          onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                              setFieldValue(
+                                                `lessons.${index}.video`,
+                                                file
+                                              );
+                                            }
+                                          }}
                                         />
                                       </Button>
                                     </Box>
@@ -461,18 +741,24 @@ const EditCourse: React.FC = () => {
                                         component="label"
                                         startIcon={<Upload />}
                                       >
-                                        {values.lessons[index].materials ||
-                                          "Upload"}
+                                        {truncateTitle(
+                                          values.lessons[index].materials
+                                            .name || "Upload",
+                                          20
+                                        )}
                                         <input
                                           type="file"
                                           name={`lessons[${index}][materials]`}
                                           hidden
-                                          onChange={(e) =>
-                                            setFieldValue(
-                                              `lessons.${index}.materials`,
-                                              e.target.files?.[0]?.name || ""
-                                            )
-                                          }
+                                          onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                              setFieldValue(
+                                                `lessons.${index}.materials`,
+                                                file
+                                              );
+                                            }
+                                          }}
                                         />
                                       </Button>
                                     </Box>
@@ -493,18 +779,24 @@ const EditCourse: React.FC = () => {
                                         component="label"
                                         startIcon={<Upload />}
                                       >
-                                        {values.lessons[index].homework ||
-                                          "Upload"}
+                                        {truncateTitle(
+                                          values.lessons[index].homework.name ||
+                                            "Upload",
+                                          20
+                                        )}
                                         <input
                                           type="file"
                                           name={`lessons[${index}][homework]`}
                                           hidden
-                                          onChange={(e) =>
-                                            setFieldValue(
-                                              `lessons.${index}.homework`,
-                                              e.target.files?.[0]?.name || ""
-                                            )
-                                          }
+                                          onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                              setFieldValue(
+                                                `lessons.${index}.homework`,
+                                                file
+                                              );
+                                            }
+                                          }}
                                         />
                                       </Button>
                                     </Box>

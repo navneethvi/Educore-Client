@@ -8,14 +8,14 @@ interface CourseCardProps {
   category: string;
   price: number;
   originalPrice: number;
-  tutorName: string;
-  image: string;
+  tutorName?: string;
+  image?: string;
   thumbnail: string;
   lessonsCount: number;
   duration: string;
   enrollments: number;
   courseId: string;
-  handleClick: (courseId: string) => void;
+  handleClick?: (courseId: string) => void;
   onEdit?: (courseId: string) => void;
   onDelete?: (courseId: string) => void;
   isAdmin?: boolean;
@@ -42,9 +42,23 @@ const CourseCard: React.FC<CourseCardProps> = ({
 }) => {
   const [imageLoading, setImageLoading] = useState(true);
 
+  const truncateTitle = (title: string, maxLength: number) => {
+    if (!title) return "";
+    if (title.length > maxLength) {
+      return title.slice(0, maxLength) + "...";
+    }
+    return title;
+  };
+
+  const handleCardClick = () => {
+    if (handleClick) {
+      handleClick(courseId); 
+    }
+  };
+
   return (
     <div
-      onClick={() => handleClick(courseId)}
+      onClick={() => handleCardClick()}
       className="bg-white border border-gray-300 rounded-lg shadow-lg overflow-hidden w-full sm:w-60 md:w-64 h-auto cursor-pointer transform transition-transform duration-300 hover:scale-105"
     >
       <div className="relative h-36">
@@ -66,7 +80,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
         </h2>
         <p className="price text-gray-700 font-reem-kufi text-sm">₹{price}</p>
       </div>
-      <h1 className="pl-3 pr-3 font-reem-kufi font-semibold text-md">{title}</h1>
+      <h1 className="pl-3 pr-3 font-reem-kufi font-semibold text-md">
+        {truncateTitle(title, 23)}
+      </h1>
       <div className="p-3">
         {isAdmin ? (
           <div className="mt-1 flex justify-center items-center space-x-4">

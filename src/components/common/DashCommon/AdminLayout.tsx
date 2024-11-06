@@ -13,13 +13,15 @@ const Layout: React.FC = () => {
 
   return (
     <Box className="flex h-screen">
+      <div className="hidden sm:block">
       <AdminSideBar
         isCollapsed={isSidebarCollapsed}
         onToggle={handleToggleSidebar}
       />
+      </div>
       <Box
-        className={`flex flex-col flex-grow transition-all duration-300 ${
-          isSidebarCollapsed ? "ml-20" : "ml-60"
+        className={`flex flex-col flex-grow transition-all duration-300  ${
+          isSidebarCollapsed ? "sm:ml-20" : "sm:ml-60"
         }`}
       >
         <Header isSidebarCollapsed={isSidebarCollapsed} />

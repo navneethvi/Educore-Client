@@ -7,7 +7,7 @@ export const uploadFileToS3 = async (
   try {
     const options = {
       headers: {
-        "Content-Type": file.type || "application/octet-stream", // Fallback for MIME type
+        "Content-Type": file.type || "application/octet-stream", 
       },
     };
     console.log("Uploading file:", file.name, "Size:", file.size);

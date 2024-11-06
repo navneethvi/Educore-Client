@@ -16,6 +16,7 @@ import Courses from "../components/common/contents/student/Courses";
 import Messages from "../components/common/contents/student/Messages";
 import Webinars from "../components/common/contents/student/Webinar";
 import Store from "../components/common/contents/student/Store";
+import CourseDetails from "../components/common/contents/student/CourseDetails";
 
 const StudentRoutes = () => {
   return (
@@ -34,6 +35,7 @@ const StudentRoutes = () => {
           </StudentProtected>
         }
       >
+        <Route path="details/:courseId" element={<CourseDetails />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="courses" element={<Courses />} />
         <Route path="messages" element={<Messages />} />

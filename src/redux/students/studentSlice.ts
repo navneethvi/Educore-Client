@@ -13,6 +13,30 @@ import {
   studentLogout,
 } from "./studentActions";
 
+interface Lesson {
+  title: string;
+  goal: string;
+  video: string;
+  materials: string;
+  homework: string;
+}
+
+interface Course {
+  tutor_data: any;
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  level: string;
+  price: number;
+  enrollments: number;
+  thumbnail: string;
+  is_approved: boolean;
+  lessons: Array<Lesson>;
+  tutor_id: string;
+  __v: number;
+}
+
 interface StudentState {
   studentData: any | null;
   studentToken: string | null;
@@ -26,6 +50,7 @@ interface StudentState {
   otpVerifySuccess: boolean;
   otpVerifyLoading: boolean;
   otpVerifyError: string;
+  allCourses: Course[];  
 }
 
 const initialState: StudentState = {
@@ -41,6 +66,7 @@ const initialState: StudentState = {
   otpVerifySuccess: false,
   otpVerifyLoading: false,
   otpVerifyError: "",
+  allCourses: [],
 };
 
 const studentSlice = createSlice({

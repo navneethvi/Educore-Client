@@ -6,6 +6,7 @@ import {
   ApiResponse,
   CategoriesResponse,
   Category,
+  Lesson,
   SigninData,
 } from "../../types/types";
 
@@ -232,6 +233,8 @@ const adminApproveCourseService = async (
   id: string
 ): Promise<ApiResponse<any>> => {
   try {
+    console.log("hitted service");
+
     const response = await axios.patch(
       `${BASE_URL}/course/approve_course/${id}`,
       {
@@ -251,18 +254,20 @@ const adminFetchLessonDetailsService = async (
   token: string,
   courseId: string,
   lessonIndex: number
-): Promise<ApiResponse<any>> => {
+): Promise<Lesson> => {
   try {
     console.log("Fetching lesson details...");
-        const response = await axios.post(`${BASE_URL}/course/${courseId}/lesson_details`, 
-    {
-      lessonIndex: lessonIndex, 
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
+    const response = await axios.post(
+      `${BASE_URL}/course/${courseId}/lesson_details`,
+      {
+        lessonIndex: lessonIndex,
       },
-    });
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     console.log("Response: ", response);
 
@@ -272,6 +277,17 @@ const adminFetchLessonDetailsService = async (
   }
 };
 
+const fetchCategoriesService = async (): Promise<Category[]> => {
+  try {
+    console.log("Fetching all categories....");
+    const response = await axios.get(`${BASE_URL}/course/get_allcategories`);
+
+    console.log("response in service : ", response);
+    return response.data
+  } catch (error: any) {
+    throw error.response?.data || { message: "Error Fetching Categories!!!" };
+  }
+};
 
 export {
   adminSigninService,
@@ -287,4 +303,5 @@ export {
   getCourseDetailsService,
   adminApproveCourseService,
   adminFetchLessonDetailsService,
+  fetchCategoriesService
 };

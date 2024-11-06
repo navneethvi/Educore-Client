@@ -14,6 +14,7 @@ import {
   tutorDeleteCourseService,
   tutorFetchCoursesService,
   tutorFetchCourseDetailsService,
+  tutorEditCourseService,
 } from "./tutorServices";
 
 import {
@@ -208,5 +209,19 @@ export const tutorFetchCourseDetails = createAsyncThunk<
     return thunkAPI.rejectWithValue(
       error.message || "Failed to fetch course details"
     );
+  }
+});
+
+export const tutorEditCourse = createAsyncThunk<
+  any,
+  { token: string; courseId: string; courseData: any },
+  { rejectValue: string }
+>("tutorEditCourse", async ({ token,courseId, courseData }, thunkAPI) => {
+  try {
+    const response = await tutorEditCourseService(token,courseId, courseData);
+    console.log("in TutorEditCourses ===>", response);
+    return response;
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue(error.message || "Failed to delete course");
   }
 });

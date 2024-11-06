@@ -137,3 +137,12 @@
   padding: 8px 16px;   /* Smaller padding */
   font-size: 14px;     /* Smaller font size */
 }
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}

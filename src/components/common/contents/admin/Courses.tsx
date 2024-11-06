@@ -119,13 +119,10 @@ const Courses: React.FC = () => {
         })
       );
 
-      const thumbnailMap = thumbnailUrls.reduce(
-        (acc, { id, url }) => {
-          acc[id] = url;
-          return acc;
-        },
-        {} as { [key: string]: string }
-      );
+      const thumbnailMap = thumbnailUrls.reduce((acc, { id, url }) => {
+        acc[id] = url;
+        return acc;
+      }, {} as { [key: string]: string });
 
       setThumbnails(thumbnailMap);
     };
@@ -173,13 +170,26 @@ const Courses: React.FC = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await dispatch(adminApproveCourse({ token, courseId }));
-          Swal.fire({
-            title: "Approved!",
-            text: "The course has been approved successfully.",
-            icon: "success",
-            confirmButtonText: "OK",
-          });
+          const approvalResult = await dispatch(
+            adminApproveCourse({ token, courseId })
+          );
+
+          if (approvalResult) {
+            await dispatch(getAllCourses({ token, status: showApproved }));
+            Swal.fire({
+              title: "Approved!",
+              text: "The course has been approved successfully.",
+              icon: "success",
+              confirmButtonText: "OK",
+            });
+          } else {
+            Swal.fire({
+              title: "Error!",
+              text: "There was an issue approving the course. Please try again.",
+              icon: "error",
+              confirmButtonText: "OK",
+            });
+          }
         } catch (error) {
           Swal.fire({
             title: "Error!",
@@ -257,23 +267,24 @@ const Courses: React.FC = () => {
                   courses.map((course) => (
                     <StyledTableRow key={course._id}>
                       <StyledTableCell align="left">
-                        <div className="shimmer-wrapper">
+                        <div className="relative shimmer-wrapper">
                           {imageLoadingMap.get(course._id) && (
-                            <div className="shimmer" />
+                            <div className="shimmer"></div>
                           )}
                           <img
                             src={thumbnails[course._id] || ""}
                             alt={course.title}
-                            className={`image ${
+                            className={`image transition-opacity duration-500 ease-in-out ${
                               imageLoadingMap.get(course._id)
-                                ? "image-hidden"
-                                : "image-loaded"
+                                ? "opacity-0"
+                                : "opacity-100"
                             }`}
                             onLoad={() => handleImageLoad(course._id)}
                             onError={() => handleImageLoad(course._id)}
                           />
                         </div>
                       </StyledTableCell>
+
                       <StyledTableCell align="center">
                         {course.title}
                       </StyledTableCell>
@@ -292,19 +303,23 @@ const Courses: React.FC = () => {
                         </StyledTableCell>
                       )}
                       <StyledTableCell align="center">
-                        {course.is_approved ? "Yes" : "No"}
+                        {course.is_approved ? (
+                          <Alert severity="success">Approved</Alert>
+                        ) : (
+                          <Alert severity="warning">Pending</Alert>
+                        )}
                       </StyledTableCell>
                       <StyledTableCell align="center">
                         <button
                           onClick={() => handleCourseClick(course._id)}
-                          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          className="bg-purple-600 text-white text-xs px-6 py-2 mr-2 rounded-full"
                         >
                           View
                         </button>
                         {!course.is_approved && (
                           <button
                             onClick={() => handleApprove(course._id)}
-                            className="ml-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                            className="bg-green-600 text-white text-xs px-6 py-2 ml-2 rounded-full"
                           >
                             Approve
                           </button>

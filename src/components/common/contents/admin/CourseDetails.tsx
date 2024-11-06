@@ -25,6 +25,14 @@ const shimmerStyle = `
     animation: shimmer 1.5s infinite;
   }
 `;
+
+const Loading = () => (
+  <div className="loading">
+    <div></div>
+    <div></div>
+  </div>
+);
+
 const CourseDetails: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const [course, setCourse] = useState<any>(null);
@@ -46,8 +54,7 @@ const CourseDetails: React.FC = () => {
 
       if (response.payload) {
         const courseData = response.payload;
-
-        setCourse(response.payload);
+        setCourse(courseData);
 
         if (courseData.thumbnail) {
           const url = await fetchThumbnailUrl(courseData.thumbnail);
@@ -63,13 +70,9 @@ const CourseDetails: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setImageLoading(false);
-    }, 1000); // display shimmer effect for at least 1 second
+    }, 1000);
     return () => clearTimeout(timer);
   }, []);
-
-  const handleImageError = () => {
-    setImageLoading(false);
-  };
 
   const fetchThumbnailUrl = async (filename: string) => {
     try {
@@ -84,13 +87,21 @@ const CourseDetails: React.FC = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="content">
+        <style>{shimmerStyle}</style>
+        <Loading />
+      </div>
+    );
+  }
+
   return (
     <div className="course-details p-4 flex gap-4 h-full">
       <style>{shimmerStyle}</style>
 
       {/* Left Side (70%) - Scrollable */}
       <div className="w-9/12 h-full overflow-y-auto custom-scrollbar">
-        {/* Course Title and Description */}
         <div className="p-4 bg-white shadow-md rounded-md">
           <h2 className="text-2xl font-semibold mb-4 mt-6">
             {course?.title || <Skeleton width={200} />}
@@ -100,7 +111,6 @@ const CourseDetails: React.FC = () => {
           </p>
         </div>
 
-        {/* Lessons Section */}
         {course?.lessons &&
           course.lessons.map((lesson: any, index: number) => (
             <div
@@ -120,6 +130,7 @@ const CourseDetails: React.FC = () => {
                     navigate(`/admin/lessons/${lesson._id}`, {
                       state: {
                         courseId: courseId,
+                        lessonLength: course.lessons.length,
                         lessonIndex: index,
                         lessonTitle: lesson.title || `Lesson ${index}`,
                       },
@@ -136,7 +147,6 @@ const CourseDetails: React.FC = () => {
 
       {/* Right Side (30%) */}
       <div className="w-3/12 flex flex-col gap-8">
-        {/* Course Details */}
         <div className="p-6 bg-white shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
           {imageLoading ? (
             <div className="shimmer h-40 rounded-md mb-4" />
@@ -146,10 +156,6 @@ const CourseDetails: React.FC = () => {
               alt={course?.title || "Course Thumbnail"}
               className="w-full h-40 object-cover mt-4 rounded-md mb-4"
               onLoad={() => setImageLoading(false)}
-              onError={() => {
-                setImageLoading(false);
-                handleImageError();
-              }}
             />
           )}
 
@@ -164,7 +170,6 @@ const CourseDetails: React.FC = () => {
           </p>
         </div>
 
-        {/* Tutor Card */}
         <div className="p-4 bg-white shadow-md rounded-md text-center flex justify-center items-center space-x-4">
           {loading ? (
             <Skeleton circle={true} height={64} width={64} />

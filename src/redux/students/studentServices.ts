@@ -166,6 +166,36 @@ const studentLogoutService = async (
   }
 };
 
+  const studentFetchCoursesService = async (
+    token: string,
+    limit: number, 
+    offset: number,
+    searchTerm: string,
+    categories: string[],
+    sort: string
+  ) => {
+    try {
+      const response = await axios.get(
+        `${BASE_URL}/course/fetch_courses`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            limit: limit, 
+            offset: offset,
+            searchTerm: searchTerm,
+            categories: categories,
+            sort: sort
+          }
+        }
+      );
+      return response.data
+    } catch (error: any) {
+      throw error.response;
+    }
+  };
+
 export {
   studentSignupService,
   studentVerifyEmailService,
@@ -176,5 +206,6 @@ export {
   studentSigninService,
   studentGoogleSigninService,
   studentResetPassService,
-  studentLogoutService
+  studentLogoutService,
+  studentFetchCoursesService
 };

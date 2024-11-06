@@ -10,6 +10,7 @@ import {
   studentResetPassService,
   studentGoogleSigninService,
   studentLogoutService,
+  studentFetchCoursesService,
 } from "./studentServices";
 
 import {
@@ -163,6 +164,21 @@ export const studentLogout = createAsyncThunk<
     const response = await studentLogoutService(token);
     console.log("in StudentLogout===>", response);
     return response.data;
+  } catch (error: any) {
+    return handleThunkError(error, thunkAPI);
+  }
+});
+
+
+export const studentFetchCourses = createAsyncThunk<
+  any,
+  { token: string; limit: number; offset: number, searchTerm: string, categories: string[], sort: string },
+  { rejectValue: string }
+>("studentfetchCourses", async ({ token, limit, offset, searchTerm, categories, sort }, thunkAPI) => {
+  try {
+    const response = await studentFetchCoursesService(token, limit, offset, searchTerm, categories, sort);
+    console.log("Fetched courses:", response);
+    return response;
   } catch (error: any) {
     return handleThunkError(error, thunkAPI);
   }

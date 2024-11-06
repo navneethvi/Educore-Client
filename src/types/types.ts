@@ -75,7 +75,7 @@ export interface TutorResetPassData {
 }
 
 
-interface Lesson {
+export interface Lesson {
   title: string;
   goal: string;
   video?: string;
@@ -93,11 +93,37 @@ export interface CourseData {
   lessons: Lesson[];
 }
 
+interface TutorData {
+  bio: string;
+  email: string;
+  followers: string[]; 
+  image: string;
+  is_blocked: boolean;
+  is_verified: boolean;
+  name: string;
+  password: string; 
+  phone: string;
+  __v: number; 
+  _id: string; 
+}
+
+
+export interface CourseForCard {
+  _id: string;
+  title: string;
+  category: string;
+  price: number;
+  tutor_data?: TutorData[];
+  thumbnail: string;
+  enrollments: number;
+  lessoncount: number;
+}
+
 
 export interface Category {
   _id: string;
   name: string;
-  course?: string[];
+  courses?: string[];
 }
 
 export interface CategoriesResponse {

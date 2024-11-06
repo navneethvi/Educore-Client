@@ -14,6 +14,8 @@ import {
   adminApproveCourseService,
   adminLogoutService,
   adminFetchLessonDetailsService,
+
+  fetchCategoriesService,
 } from "./adminServices";
 
 import {
@@ -21,9 +23,11 @@ import {
   AdminResponse,
   ApiResponse,
   CategoriesResponse,
+  Lesson,
 } from "../../types/types";
 import axios from "axios";
-import Category from "../../components/common/contents/admin/Category";
+
+import { Category } from "../../types/types";
 
 export const adminSignin = createAsyncThunk<
   AdminResponse,
@@ -176,7 +180,7 @@ export const toggleBlockStudent = createAsyncThunk<
 
 export const getAllCourses = createAsyncThunk<
   ApiResponse<any>,
-  { token: string, status: boolean },
+  { token: string; status: boolean },
   {
     rejectValue: string;
   }
@@ -217,6 +221,8 @@ export const adminApproveCourse = createAsyncThunk<
   }
 >("adminApproveCourse", async ({ token, courseId }, thunkAPI) => {
   try {
+    console.log("hitted action");
+    
     const response = await adminApproveCourseService(token, courseId);
     return response;
   } catch (error: any) {
@@ -227,22 +233,54 @@ export const adminApproveCourse = createAsyncThunk<
 });
 
 export const adminFetchLessonDetails = createAsyncThunk<
-  ApiResponse<any>,
+  Promise<any>,
   { token: string; courseId: string; lessonIndex: number }, // Adjust parameters
   {
     rejectValue: string;
   }
->("adminFetchLessonDetails", async ({ token, courseId, lessonIndex }, thunkAPI) => {
-  try {
-    console.log("hereeeeeeeeeeeeeeeeeee");
-    
-    const response = await adminFetchLessonDetailsService(token, courseId, lessonIndex);
-    console.log("res in action", response);
-    
-    return response;
-  } catch (error: any) {
-    return thunkAPI.rejectWithValue(
-      error.message || error.response?.data?.error || "An error occurred"
-    );
+>(
+  "adminFetchLessonDetails",
+  async ({ token, courseId, lessonIndex }, thunkAPI) => {
+    try {
+      console.log("hereeeeeeeeeeeeeeeeeee");
+
+      const response = await adminFetchLessonDetailsService(
+        token,
+        courseId,
+        lessonIndex
+      );
+      console.log("res in action", response);
+
+      return response;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(
+        error.message || error.response?.data?.error || "An error occurred"
+      );
+    }
   }
-});
+);
+
+export const fetchAllCategories = createAsyncThunk<
+  Category[],
+   void,
+  {
+    rejectValue: string;
+  }
+>(
+  "fetchAllCategories",
+  async (_, thunkAPI) => {
+    try {
+      console.log("Fetching categories...");
+
+      const response = await fetchCategoriesService();
+
+      console.log("Response in action", response);
+
+      return response;
+    }  catch (error: any) {
+      return thunkAPI.rejectWithValue(
+        error.message || error.response?.data?.error || "An error occurred while fetching categories"
+      );
+    }
+  }
+);

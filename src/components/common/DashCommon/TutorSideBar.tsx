@@ -3,7 +3,7 @@ import { Box, IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import PersonIcon from "@mui/icons-material/Person";
@@ -20,6 +20,17 @@ const TutorSideBar: React.FC<SideBarProps> = ({ isCollapsed, onToggle }) => {
   const handleFoldClick = () => {
     onToggle();
   };
+
+  const location = useLocation(); // Hook to get the current route
+
+  const sidebarItems = [
+    { to: "/tutor/dashboard", icon: <DashboardIcon />, label: "Dashboard" },
+    { to: "/tutor/courses", icon: <LibraryBooksIcon />, label: "Courses" },
+    { to: "/tutor/students", icon: <PersonIcon />, label: "Students" },
+    { to: "/tutor/messages", icon: <MessageIcon />, label: "Message" },
+    { to: "/tutor/webinar", icon: <LiveTvIcon />, label: "Webinar" },
+    { to: "/tutor/add-course", icon: <AddCardIcon />, label: "Add Course" },
+  ];
 
   return (
     <Box
@@ -45,38 +56,43 @@ const TutorSideBar: React.FC<SideBarProps> = ({ isCollapsed, onToggle }) => {
       </div>
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
-          {[
-            { to: "/tutor/dashboard", icon: <DashboardIcon />, label: "Dashboard" },
-            { to: "/tutor/courses", icon: <LibraryBooksIcon />, label: "Courses" },
-            { to: "/tutor/students", icon: <PersonIcon />, label: "Students" },
-            { to: "/tutor/messages", icon: <MessageIcon />, label: "Message" },
-            { to: "/tutor/webinar", icon: <LiveTvIcon />, label: "Webinar" },
-            { to: "/tutor/add-course", icon: <AddCardIcon />, label: "Add Course" },
-          ].map((item, index) => (
-            <motion.li
-              key={index}
-              initial={{ opacity: 0, scale: 0.5, filter: "blur(10px)" }}
-              animate={{
-                opacity: isCollapsed ? 0 : 1,
-                scale: isCollapsed ? 0.5 : 1,
-                filter: isCollapsed ? "blur(10px)" : "blur(0px)",
-              }}
-              transition={{ delay: 0.05 * index + 0.1 }}
-            >
-              <Link
-                to={item.to}
-                className="p-2 hover:bg-gray-700 rounded flex items-center space-x-4 mb-4"
-                onClick={(e) => {
-                  if (isCollapsed) {
-                    e.preventDefault();
-                  }
+          {sidebarItems.map((item, index) => {
+            const isActive = location.pathname === item.to;
+
+            return (
+              <motion.li
+                key={index}
+                initial={{ opacity: 0, scale: 0.5, filter: "blur(10px)" }}
+                animate={{
+                  opacity: isCollapsed ? 0 : 1,
+                  scale: isCollapsed ? 0.5 : 1,
+                  filter: isCollapsed ? "blur(10px)" : "blur(0px)",
                 }}
+                transition={{ delay: 0.05 * index + 0.1 }}
               >
-                {React.cloneElement(item.icon, { className: "w-6 h-6 text-white" })}
-                {!isCollapsed && <span className="text-white">{item.label}</span>}
-              </Link>
-            </motion.li>
-          ))}
+                <Link
+                  to={item.to}
+                  className={`p-2 rounded flex items-center space-x-4 mb-4 ${
+                    isActive ? "bg-gray-700" : "hover:bg-gray-700"
+                  }`}
+                  onClick={(e) => {
+                    if (isCollapsed) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  {React.cloneElement(item.icon, {
+                    className: `w-6 h-6 ${isActive ? "text-purple-400" : "text-white"}`,
+                  })}
+                  {!isCollapsed && (
+                    <span className={`${isActive ? "text-purple-400" : "text-white"}`}>
+                      {item.label}
+                    </span>
+                  )}
+                </Link>
+              </motion.li>
+            );
+          })}
         </ul>
       </nav>
     </Box>

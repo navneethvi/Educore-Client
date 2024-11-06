@@ -231,6 +231,33 @@ const tutorFetchCourseDetailsService = async (
   }
 };
 
+const tutorEditCourseService = async (
+  token: string,
+  courseId: string,
+  courseData: any
+) => {
+  try {
+    console.log("Sending FormData:", courseData);
+
+    const response = await axios.patch(
+      `${BASE_URL}/course/edit_course/${courseId}`,
+      courseData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    console.log("Response:", response);
+
+    return response;
+  } catch (error: any) {
+    throw error.response?.data?.message || "An error occurred";
+  }
+};
+
 export {
   tutorSignupService,
   tutorVerifyEmailService,
@@ -244,5 +271,6 @@ export {
   tutorCreateCourseService,
   tutorFetchCoursesService,
   tutorDeleteCourseService,
-  tutorFetchCourseDetailsService
+  tutorFetchCourseDetailsService,
+  tutorEditCourseService,
 };

@@ -14,6 +14,7 @@ import {
   tutorCreateCourse,
   tutorFetchCourses,
   tutorDeleteCourse,
+  tutorEditCourse,
 } from "./tutorActions";
 
 interface TutorData {
@@ -55,7 +56,7 @@ interface Course {
   enrollments: number;
   thumbnail: string;
   is_approved: boolean;
-  lessons: Array<Lesson>; 
+  lessons: Array<Lesson>;
   tutor_id: string;
   __v: number;
 }
@@ -114,7 +115,6 @@ const initialState: TutorState = {
 
 // Your slice definition here
 
-
 const tutorSlice = createSlice({
   name: "tutor",
   initialState,
@@ -143,7 +143,6 @@ const tutorSlice = createSlice({
       state.tutorData = action.payload.data;
       state.tutorToken = action.payload.token;
     },
-   
   },
   extraReducers: (builder) => {
     builder
@@ -301,8 +300,8 @@ const tutorSlice = createSlice({
         state.loading = true;
       })
       .addCase(tutorFetchCourses.fulfilled, (state, action) => {
-        const { data, totalPages } = action.payload.data;  // Extract only the serializable data you need
-      
+        const { data, totalPages } = action.payload.data; // Extract only the serializable data you need
+
         if (action.meta.arg.status === true) {
           state.approvedCourses.data = data;
           state.totalPagesApproved = totalPages;
@@ -312,7 +311,6 @@ const tutorSlice = createSlice({
         }
         state.loading = false;
       })
-      
 
       .addCase(tutorDeleteCourse.pending, (state) => {
         state.loading = true;
@@ -321,20 +319,76 @@ const tutorSlice = createSlice({
         state.loading = false;
         const deletedCourseId = action.payload;
 
-        if (state.approvedCourses.data.some(course => course._id === deletedCourseId)) {
-          state.approvedCourses.data = state.approvedCourses.data.filter(course => course._id !== deletedCourseId);
+        if (
+          state.approvedCourses.data.some(
+            (course) => course._id === deletedCourseId
+          )
+        ) {
+          state.approvedCourses.data = state.approvedCourses.data.filter(
+            (course) => course._id !== deletedCourseId
+          );
         }
 
-        if (state.pendingCourses.data.some(course => course._id === deletedCourseId)) {
-          state.pendingCourses.data = state.pendingCourses.data.filter(course => course._id !== deletedCourseId);
+        if (
+          state.pendingCourses.data.some(
+            (course) => course._id === deletedCourseId
+          )
+        ) {
+          state.pendingCourses.data = state.pendingCourses.data.filter(
+            (course) => course._id !== deletedCourseId
+          );
         }
       })
       .addCase(tutorDeleteCourse.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Non Approved Course fetch failed";
-      });
+      })
 
-       
+      .addCase(tutorEditCourse.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(tutorEditCourse.fulfilled, (state, action) => {
+        state.loading = false;
+        const editedCourse = action.payload.data.updatedCourse;
+
+        console.log("payloaaaaaaaad",editedCourse);
+        
+
+        const updatedFields = {
+          _id: editedCourse._id,
+          title: editedCourse.title,
+          category: editedCourse.category,
+          thumbnail: editedCourse.thumbnail,
+          enrollments: editedCourse.enrollments,
+          price: editedCourse.price,
+          lessoncount: editedCourse.lessoncount,
+        };
+
+        const approvedIndex = state.approvedCourses.data.findIndex(
+          (course) => course._id === editedCourse._id
+        );
+        if (approvedIndex !== -1) {
+          state.approvedCourses.data[approvedIndex] = {
+            ...state.approvedCourses.data[approvedIndex],
+            ...updatedFields,
+          };
+        }
+
+        // Find and update course in pendingCourses if it exists
+        const pendingIndex = state.pendingCourses.data.findIndex(
+          (course) => course._id === editedCourse._id
+        );
+        if (pendingIndex !== -1) {
+          state.pendingCourses.data[pendingIndex] = {
+            ...state.pendingCourses.data[pendingIndex],
+            ...updatedFields,
+          };
+        }
+      })
+      .addCase(tutorEditCourse.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Non Approved Course fetch failed";
+      });
   },
 });
 
