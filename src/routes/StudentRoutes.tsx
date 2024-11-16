@@ -17,6 +17,10 @@ import Messages from "../components/common/contents/student/Messages";
 import Webinars from "../components/common/contents/student/Webinar";
 import Store from "../components/common/contents/student/Store";
 import CourseDetails from "../components/common/contents/student/CourseDetails";
+import { PaymentSuccess } from "../components/common/contents/student/PaymentSuccess";
+import PaymentFailed from "../components/common/contents/student/PaymentFailed";
+import EnrolledCourseDetails from "../components/common/contents/student/EnrolledCourseDetails";
+import EnrolledLessonDetails from "../components/common/contents/student/EnrolledLessonDetails";
 
 const StudentRoutes = () => {
   return (
@@ -27,6 +31,9 @@ const StudentRoutes = () => {
       <Route path="/reset-pass" element={<ResetPass />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/select-interests" element={<SelectInterests />} />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
+      <Route path="/payment-failed" element={<PaymentFailed />} />
+
       <Route
         path="/"
         element={
@@ -36,6 +43,8 @@ const StudentRoutes = () => {
         }
       >
         <Route path="details/:courseId" element={<CourseDetails />} />
+        <Route path="courses/:courseId" element={<EnrolledCourseDetails />} />
+        <Route path="lessons/:lessonId" element={<EnrolledLessonDetails />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="courses" element={<Courses />} />
         <Route path="messages" element={<Messages />} />

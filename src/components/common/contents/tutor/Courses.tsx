@@ -13,13 +13,14 @@ import { BASE_URL } from "../../../../utils/configs";
 const Courses: React.FC = () => {
   const [showApproved, setShowApproved] = useState(true);
   const [thumbnails, setThumbnails] = useState<{ [key: string]: string }>({});
+  const [fetchCompleted, setFetchCompleted] = useState(false); // New state to track fetch completion
   const dispatch: AppDispatch = useDispatch();
   const {
     tutorData,
     tutorToken,
     loading,
-    approvedCourses,
-    pendingCourses,
+    approvedCourses = { data: [] },
+    pendingCourses = { data: [] },
     totalPagesApproved,
     totalPagesPending,
     currentPageApproved,
@@ -33,14 +34,18 @@ const Courses: React.FC = () => {
       const token = tutorToken as string;
       const tutorId = tutorData?._id as string;
 
-      if (showApproved && !approvedCourses.data.length) {
+      if (showApproved && approvedCourses.data.length === 0 && !loading && !fetchCompleted) {
         await dispatch(tutorFetchCourses({ token, tutorId, status: true }));
-      } else if (!showApproved && !pendingCourses.data.length) {
+        setFetchCompleted(true); // Set fetch as completed to avoid multiple calls
+      } else if (!showApproved && pendingCourses.data.length === 0 && !loading && !fetchCompleted) {
         await dispatch(tutorFetchCourses({ token, tutorId, status: false }));
+        setFetchCompleted(true);
       }
     };
 
-    fetchCourses();
+    if (!loading) {  
+      fetchCourses();
+    }
   }, [
     dispatch,
     tutorToken,
@@ -48,6 +53,8 @@ const Courses: React.FC = () => {
     showApproved,
     approvedCourses.data,
     pendingCourses.data,
+    loading,
+    fetchCompleted, // Add fetchCompleted to dependency array
   ]);
 
   const fetchThumbnailUrl = async (filename: string) => {
@@ -139,9 +146,12 @@ const Courses: React.FC = () => {
     }
   };
 
-  const courses = showApproved ? approvedCourses.data : pendingCourses.data;
+  const courses = showApproved ? approvedCourses.data || [] : pendingCourses.data || [];
   const totalPages = showApproved ? totalPagesApproved : totalPagesPending;
   const currentPage = showApproved ? currentPageApproved : currentPagePending;
+
+  console.log("coursessssssss" , courses);
+  
 
   return (
     <>
@@ -150,7 +160,10 @@ const Courses: React.FC = () => {
       </div>
       <div className="flex justify-end mb-6 mr-10">
         <button
-          onClick={() => setShowApproved(!showApproved)}
+          onClick={() => {
+            setShowApproved(!showApproved);
+            setFetchCompleted(false); // Reset fetchCompleted when toggling views
+          }}
           className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300"
         >
           {showApproved ? "Show Pending Courses" : "Show Approved Courses"}

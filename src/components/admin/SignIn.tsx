@@ -32,10 +32,10 @@ const AdminSignIn: React.FC = () => {
       dispatch(resetActions());
     }
     if (success) {
-      toast.success(message);
+      toast.success("Signin Successfull");
       dispatch(resetActions());
       navigate("/admin/dashboard", {
-        state: { message: "OTP Sented to your email", email: email },
+        state: { email: email },
       });
     }
   });
@@ -50,7 +50,7 @@ const AdminSignIn: React.FC = () => {
       toast.error("Invalid email format");
       return;
     }
-    if (password.length < 5) {
+    if (password.length < 4) {
       toast.error("Password must be at least 5 characters long");
       return;
     }

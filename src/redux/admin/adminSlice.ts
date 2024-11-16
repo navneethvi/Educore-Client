@@ -11,6 +11,7 @@ import {
   getCourseDetails,
   toggleBlockStudent,
   toggleBlockTutor,
+  adminLogout
 } from "./adminActions";
 import { ApiResponse } from "../../types/types";
 import { number } from "yup";
@@ -137,20 +138,20 @@ const adminSlice = createSlice({
   name: "admin",
   initialState,
   reducers: {
+    setAccessToken: (state, action: PayloadAction<string>) => {
+      state.adminToken = action.payload;
+    },
     resetActions: (state) => {
       state.success = false;
       state.error = "";
       state.loading = false;
       state.message = "";
     },
-    adminLogout: (state) => {
-      state.adminData = null;
-      state.adminToken = null;
-      state.success = false;
-      state.error = "";
-      state.loading = false;
-      state.message = "";
-    },
+    // adminLogout: (state: AdminState) => {
+    //   return {
+    //     ...initialState,
+    //   };
+    // },
     setAdminData: (
       state,
       action: PayloadAction<{ data: any; token: string }>
@@ -173,7 +174,7 @@ const adminSlice = createSlice({
           state.loading = false;
           state.success = true;
           state.adminData = action.payload.adminData;
-          state.adminToken = action.payload.adminData.token;
+          state.adminToken = action.payload.adminData.accessToken;
         }
       )
       .addCase(adminSignin.rejected, (state, action: PayloadAction<any>) => {
@@ -259,6 +260,8 @@ const adminSlice = createSlice({
         state.error = "";
       })
       .addCase(toggleBlockTutor.fulfilled, (state, action: any) => {
+        console.log("payloaaaad=======>", action.payload);
+
         state.loading = false;
         const updatedTutor = action.payload;
 
@@ -302,7 +305,7 @@ const adminSlice = createSlice({
         state.loading = false;
         state.success = true;
         console.log("payloaad", action.payload[0]?.is_approved);
-        
+
         if (action.payload[0]?.is_approved) {
           state.approvedCourses.data = action.payload;
         } else {
@@ -328,10 +331,17 @@ const adminSlice = createSlice({
           state.loading = false;
           state.error = action.payload || "Failed to Fetch Course Details";
         }
-      );
+      )
+      .addCase(adminLogout.fulfilled, (state) => {
+        // Reset state on logout
+        return {
+          ...initialState,
+        };
+      })
   },
 });
 
-export const { resetActions, adminLogout, setAdminData } = adminSlice.actions;
+export const { resetActions, setAdminData, setAccessToken } =
+  adminSlice.actions;
 
 export default adminSlice.reducer;

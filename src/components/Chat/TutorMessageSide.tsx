@@ -13,16 +13,14 @@ import { ExistingChat } from "../common/contents/student/Messages";
 import socket from "../../utils/socket";
 
 interface MessageSideProps {
-  tutorInfo?: { name: string; image: string; tutorId: string };
   existingChats?: { _id: string; name: string; image: string }[]; // Example shape
   setExistingChats?: React.Dispatch<React.SetStateAction<ExistingChat[]>>;
-  selectedTutor?: { name: string; image: string; _id: string } | null;
+  selectedStudent?: { name: string; image: string; _id: string } | null;
 }
 const MessageSide: React.FC<MessageSideProps> = ({
-  tutorInfo,
   existingChats = [],
   setExistingChats,
-  selectedTutor,
+  selectedStudent,
 }) => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<{ text: string; sender: string }[]>(
@@ -31,38 +29,37 @@ const MessageSide: React.FC<MessageSideProps> = ({
   const [chatId, setChatId] = useState("");
   const [showPicker, setShowPicker] = useState(false);
 
-  const { studentToken, studentData } = useSelector(
-    (state: RootState) => state.student
+  const { tutorToken, tutorData } = useSelector(
+    (state: RootState) => state.tutor
   );
 
   const messageEndRef = useRef<null | HTMLDivElement>(null);
 
-  useEffect(() => {
-    console.log("selectedTutor=====>", selectedTutor);
+useEffect(() => {
+  console.log("selectedStudent=====>", selectedStudent);
 
-    if (tutorInfo || selectedTutor) {
-      const chatId = [
-        studentData?._id,
-        tutorInfo?.tutorId || selectedTutor?._id,
-      ]
-        .filter(Boolean) // Ensure no undefined values
-        .sort() // Alphabetical order for consistency
-        .join("_"); // Join with separator
+  if (selectedStudent) {
+    const chatId = [tutorData?._id, selectedStudent?._id]
+      .filter(Boolean) // Ensure no undefined values
+      .sort() // Alphabetical order for consistency
+      .join("_"); // Join with separator
 
-      console.log("Generated chatId (Tutor Side):", chatId);
+    console.log("Generated chatId (Tutor Side):", chatId);
 
-      socket.emit("join-room", chatId);
+    socket.emit("join-room", chatId);
 
-      socket.on("receive_message", (message: any) => {
-        setMessages((prevMessages) => [...prevMessages, message]);
-      });
-    }
+    socket.on("receive_message", (message: any) => {
+      setMessages((prevMessages) => [...prevMessages, message]);
+    });
+  }
 
-    return () => {
-      socket.off("receive_message");
-      console.log("Socket event unsubscribed (Tutor Side)");
-    };
-  }, [tutorInfo, selectedTutor, studentData?._id]);
+  return () => {
+    socket.off("receive_message");
+    console.log("Socket event unsubscribed (Tutor Side)");
+  };
+}, [ selectedStudent, tutorData?._id]);
+
+  
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -79,55 +76,71 @@ const MessageSide: React.FC<MessageSideProps> = ({
   const handleSendMessage = async () => {
     if (message.trim()) {
       try {
-        console.log("handleSend message invoked");
-
-        // Ensure `existingChats` is valid
-        if (Array.isArray(existingChats)) {
-          if (!existingChats.some((chat) => chat._id === tutorInfo?.tutorId)) {
-            console.log("condition passed");
-
+        console.log("handleSendMessage invoked");
+  
+        if (!chatId && Array.isArray(existingChats)) {
+          // Check if chat already exists
+          const existingChat = existingChats.find(
+            (chat) => chat.name === selectedStudent?.name
+          );
+  
+          if (!existingChat) {
+            // Create a new chat if not found
             const response = await fetch(`${BASE_URL}/chat/create-chat`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${studentToken}`,
+                Authorization: `Bearer ${tutorToken}`,
               },
               body: JSON.stringify({
-                chatMembers: [studentData._id, tutorInfo?.tutorId],
-                chatMemberModel: ["Student", "Tutor"],
+                chatMembers: [tutorData?._id, selectedStudent?._id],
+                chatMemberModel: ["Tutor", "Student"],
               }),
             });
+  
             const data = await response.json();
-            console.log("response received", data);
-
-            setChatId(data._id);
-            if (setExistingChats) {
-              setExistingChats([...existingChats, data]);
+  
+            if (response.ok) {
+              console.log("New chat created:", data);
+              setChatId(data._id);
+  
+              // Update existing chats
+              setExistingChats?.((prevChats) => [...prevChats, data]);
+            } else {
+              throw new Error(data.message || "Failed to create chat");
             }
+          } else {
+            setChatId(existingChat._id); // Use existing chat ID
           }
-        } else {
-          console.error("existingChats is not an array");
+        }
+  
+        if (!chatId) {
+          console.error("Chat ID is undefined");
           return;
         }
-
+  
+        // Send the message
         await sendMessageToChat(chatId, message);
+  
         setMessages((prevMessages) => [
           ...prevMessages,
           { text: message, sender: "me" },
         ]);
-        setMessage(""); // Clear the input field
+  
+        setMessage(""); // Clear input
       } catch (error) {
         console.error("Failed to create chat or send message:", error);
       }
     }
   };
+  
 
   const onEmojiClick = (event: any, emojiObject: any) => {
     setMessage((prevMessage) => prevMessage + emojiObject.emoji);
     setShowPicker(false); // Close the picker after selection
   };
 
-  if (!tutorInfo && !selectedTutor) {
+  if ( !selectedStudent) {
     // Fallback message when no tutor is selected
     return (
       <motion.div
@@ -154,13 +167,13 @@ const MessageSide: React.FC<MessageSideProps> = ({
       <div className="message-header flex items-center p-4 border-b border-gray-300">
         <div className="profile-container flex-shrink-0">
           <img
-            src={tutorInfo?.image || selectedTutor?.image} // Using the tutor's image from the prop
+            src={selectedStudent?.image} // Using the tutor's image from the prop
             alt="Profile"
             className="w-10 h-10 rounded-full"
           />
         </div>
         <div className="name ml-3 text-lg text-gray-800 font-reem-kufi">
-          {tutorInfo?.name || selectedTutor?.name}
+          { selectedStudent?.name}
         </div>
       </div>
 

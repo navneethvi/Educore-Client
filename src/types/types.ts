@@ -36,6 +36,7 @@ export interface StudentResendOtp {
 }
 
 export interface ApiResponse<T> {
+  headers: any;
   success: boolean;
   message: string;
   data: T;

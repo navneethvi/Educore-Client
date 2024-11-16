@@ -9,10 +9,13 @@ import {
   Lesson,
   SigninData,
 } from "../../types/types";
+import instance from "../../utils/axios";
 
 const adminSigninService = async (data: SigninData) => {
   try {
-    const response = await axios.post(`${BASE_URL}/auth/admin/signin`, data);
+    console.log("helloooo");
+    
+    const response = await instance.post(`${BASE_URL}/auth/admin/signin`, data);
     console.log("response in servcixe : ", response);
     return response.data;
   } catch (error: any) {
@@ -22,9 +25,9 @@ const adminSigninService = async (data: SigninData) => {
 
 const adminLogoutService = async (token: string) => {
   try {
-    console.log(token);
+    console.log("token-==========>",token);
 
-    const response = await axios.post(
+    const response = await instance.post(
       `${BASE_URL}/auth/admin/logout`,
       {},
       {
@@ -33,7 +36,10 @@ const adminLogoutService = async (token: string) => {
         },
       }
     );
-    return response.data;
+
+    console.log("response in adminLogout service====?", response);
+    
+    return response;
   } catch (error: any) {
     throw error.response.data;
   }
@@ -43,11 +49,11 @@ const getStudentsDataService = async (
   token: string,
   page: number,
   searchTerm: string
-): Promise<ApiResponse<any>> => {
+): Promise<any> => {
   try {
     console.log("page in service ==>", page);
 
-    const response = await axios.get(
+    const response = await instance.get(
       `${BASE_URL}/auth/admin/get_students?page=${page}&searchTerm=${searchTerm}`,
       {
         headers: {
@@ -56,7 +62,7 @@ const getStudentsDataService = async (
       }
     );
     console.log("response in service: ", response.data);
-    return response.data;
+    return response;
   } catch (error: any) {
     throw error.response.data;
   }
@@ -66,11 +72,11 @@ const getTutorsDataService = async (
   token: string,
   page: number,
   searchTerm: string
-): Promise<ApiResponse<any>> => {
+): Promise<any> => {
   try {
     console.log("page in service ==>", page);
 
-    const response = await axios.get(
+    const response = await instance.get(
       `${BASE_URL}/auth/admin/get_tutors?page=${page}&searchTerm=${searchTerm}`,
       {
         headers: {
@@ -78,8 +84,8 @@ const getTutorsDataService = async (
         },
       }
     );
-    console.log("response in service: ", response.data);
-    return response.data;
+    console.log("response in service: ", response);
+    return response;
   } catch (error: any) {
     throw error.response.data;
   }
@@ -89,9 +95,9 @@ const getTutorsDataService = async (
 const addCategoryService = async (
   token: string,
   categoryName: string
-): Promise<Category> => {
+): Promise<any> => {
   try {
-    const response = await axios.post(
+    const response = await instance.post(
       `${BASE_URL}/course/add_category`,
       { name: categoryName },
       {
@@ -101,7 +107,7 @@ const addCategoryService = async (
       }
     );
     console.log("Response in service:", response.data);
-    return response.data;
+    return response;
   } catch (error: any) {
     throw error.response?.data || { message: "An error occurred" };
   }
@@ -131,9 +137,9 @@ const getCategoriesDataService = async (
 const deleteCategoryService = async (
   token: string,
   category_id: string
-): Promise<ApiResponse<any>> => {
+): Promise<any> => {
   try {
-    const response = await axios.post(
+    const response = await instance.post(
       `${BASE_URL}/course/delete_category`,
       { _id: category_id },
       {
@@ -143,7 +149,7 @@ const deleteCategoryService = async (
       }
     );
     console.log("response in service: ", response.data);
-    return response.data;
+    return response;
   } catch (error: any) {
     throw error.response?.data || { message: "An error occurred" };
   }
@@ -152,9 +158,9 @@ const deleteCategoryService = async (
 const toggleBlockTutorService = async (
   token: string,
   tutorId: string
-): Promise<ApiResponse<any>> => {
+): Promise<any> => {
   try {
-    const response = await axios.patch(
+    const response = await instance.patch(
       `${BASE_URL}/auth/tutor/${tutorId}/block`,
       {
         headers: {
@@ -163,7 +169,7 @@ const toggleBlockTutorService = async (
       }
     );
     console.log("response in service: ", response.data);
-    return response.data;
+    return response;
   } catch (error: any) {
     throw error.response?.data || { message: "An error occurred" };
   }
@@ -172,15 +178,15 @@ const toggleBlockTutorService = async (
 const toggleBlockStudentService = async (
   token: string,
   studentId: string
-): Promise<ApiResponse<any>> => {
+): Promise<any> => {
   try {
-    const response = await axios.patch(`${BASE_URL}/auth/${studentId}/block`, {
+    const response = await instance.patch(`${BASE_URL}/auth/${studentId}/block`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
     console.log("response in service: ", response.data);
-    return response.data;
+    return response;
   } catch (error: any) {
     throw error.response?.data || { message: "An error occurred" };
   }
@@ -189,11 +195,11 @@ const toggleBlockStudentService = async (
 const getALlCoursesService = async (
   token: string,
   status: boolean
-): Promise<ApiResponse<any>> => {
+): Promise<any> => {
   try {
     console.log("status in getallcourse service===>", status);
 
-    const response = await axios.get(
+    const response = await instance.get(
       `${BASE_URL}/course/get_courses/${status}`,
       {
         headers: {
@@ -202,7 +208,7 @@ const getALlCoursesService = async (
       }
     );
     console.log("response in service: ", response.data);
-    return response.data;
+    return response;
   } catch (error: any) {
     throw error.response?.data || { message: "An error occurred" };
   }
@@ -231,7 +237,7 @@ const getCourseDetailsService = async (
 const adminApproveCourseService = async (
   token: string,
   id: string
-): Promise<ApiResponse<any>> => {
+): Promise<any> => {
   try {
     console.log("hitted service");
 
@@ -283,7 +289,7 @@ const fetchCategoriesService = async (): Promise<Category[]> => {
     const response = await axios.get(`${BASE_URL}/course/get_allcategories`);
 
     console.log("response in service : ", response);
-    return response.data
+    return response.data;
   } catch (error: any) {
     throw error.response?.data || { message: "Error Fetching Categories!!!" };
   }
@@ -303,5 +309,5 @@ export {
   getCourseDetailsService,
   adminApproveCourseService,
   adminFetchLessonDetailsService,
-  fetchCategoriesService
+  fetchCategoriesService,
 };

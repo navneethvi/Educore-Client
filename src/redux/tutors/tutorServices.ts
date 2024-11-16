@@ -1,5 +1,5 @@
-import axios from "../../utils/axios";
-// import axios from "axios";
+// import axios from "../../utils/axios";
+import axios from "axios";
 
 import { BASE_URL } from "../../utils/configs";
 
@@ -10,6 +10,8 @@ import {
   SigninData,
   TutorResetPassData,
 } from "../../types/types";
+import instance from "../../utils/axios";
+import { setAccessToken } from "./tutorSlice";
 
 const tutorSignupService = async (
   data: TutorSignupData
@@ -99,7 +101,7 @@ const verifyTutorAccountService = async (data: {
 
 const tutorGoogleSigninService = async (data: { token: string }) => {
   try {
-    const response = await axios.post<{ message: string }>(
+    const response = await instance.post<{ message: string }>(
       `${BASE_URL}/auth/tutor/google`,
       data
     );
@@ -129,7 +131,7 @@ const tutorLogoutService = async (token: string) => {
   try {
     console.log(token);
 
-    const response = await axios.post(
+    const response = await instance.post(
       `${BASE_URL}/auth/tutor/logout`,
       {},
       {
@@ -138,7 +140,7 @@ const tutorLogoutService = async (token: string) => {
         },
       }
     );
-    return response.data;
+    return response;
   } catch (error: any) {
     throw error.response.data;
   }
@@ -173,14 +175,19 @@ const tutorFetchCoursesService = async (
   status: boolean
 ) => {
   try {
-    const response = await axios.get(
-      `${BASE_URL}/course/${tutorId}/courses/${status}`,
+    console.log("hereeeeeeeeeeeeeeeeeeee");
+
+    const response = await instance.get(
+      `/course/${tutorId}/courses/${status}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       }
     );
+
+    console.log("rrrrrrrrrrrrrrrrrrrrrrrr", response);
+
     return response;
   } catch (error: any) {
     throw error.response;
@@ -225,7 +232,7 @@ const tutorFetchCourseDetailsService = async (
         },
       }
     );
-    return response.data;
+    return response;
   } catch (error: any) {
     throw error.response;
   }

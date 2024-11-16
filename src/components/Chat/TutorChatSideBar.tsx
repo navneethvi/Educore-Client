@@ -7,20 +7,20 @@ import { RootState } from "../../store/store";
 import { ExistingChat } from "../common/contents/student/Messages";
 
 interface ChatSideProps {
-  tutorInfo?: { name: string; image: string; _id: string };
+  studentInfo?: { name: string; image: string; _id: string };
   existingChats?: ExistingChat[];
-  onTutorSelect: (selectedTutor: { name: string; image: string; _id: string }) => void;
+  onStudentSelect: (selectedTutor: { name: string; image: string; _id: string }) => void;
 }
 
 const ChatSideBar: React.FC<ChatSideProps> = ({
-  tutorInfo,
+  studentInfo,
   existingChats = [],
-  onTutorSelect,
+  onStudentSelect,
 }) => {
   const [selectedProfileIndex, setSelectedProfileIndex] = useState<number | null>(null);
 
-  const { studentToken, studentData } = useSelector(
-    (state: RootState) => state.student
+  const { tutorToken, tutorData } = useSelector(
+    (state: RootState) => state.tutor
   );
 
   const handleProfileClick = (
@@ -28,7 +28,7 @@ const ChatSideBar: React.FC<ChatSideProps> = ({
     selectedTutor: { name: string; image: string; _id: string }
   ) => {
     setSelectedProfileIndex(index);
-    onTutorSelect(selectedTutor);
+    onStudentSelect(selectedTutor);
   };
 
   const hasChats = Array.isArray(existingChats) && existingChats.length > 0;
@@ -40,7 +40,7 @@ const ChatSideBar: React.FC<ChatSideProps> = ({
       </div>
 
       <div className="flex-grow overflow-y-auto p-2 space-y-2 max-h-screen">
-        {!hasChats && !tutorInfo?.name && (
+        {!hasChats && !studentInfo?.name && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -51,17 +51,17 @@ const ChatSideBar: React.FC<ChatSideProps> = ({
           </motion.div>
         )}
 
-        {tutorInfo && (
+        {studentInfo && (
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            onClick={() => handleProfileClick(0, tutorInfo)}
+            onClick={() => handleProfileClick(0, studentInfo)}
           >
             <ProfileBox
               isSelected={selectedProfileIndex === 0}
-              tutorInfo={tutorInfo}
+              studentInfo={studentInfo}
             />
           </motion.div>
         )}
@@ -69,7 +69,7 @@ const ChatSideBar: React.FC<ChatSideProps> = ({
         {hasChats &&
           existingChats.map((chat, index) => {
             const otherMember = chat.chatMembers.find(
-              (member) => member._id !== studentData?._id
+              (member) => member._id !== tutorData?._id
             );
 
             return otherMember ? (
@@ -89,7 +89,7 @@ const ChatSideBar: React.FC<ChatSideProps> = ({
               >
                 <ProfileBox
                   isSelected={selectedProfileIndex === index}
-                  tutorInfo={{
+                  studentInfo={{
                     name: otherMember.name,
                     image: otherMember.image,
                     _id: otherMember._id,

@@ -10,7 +10,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import Skeleton from "react-loading-skeleton";
 import { BASE_URL } from "../../../../utils/configs";
 
-const LessonDetails: React.FC = () => {
+const EnrolledLessonDetails: React.FC = () => {
   const location = useLocation();
   const dispatch: AppDispatch = useDispatch();
   const { lessonIndex: initialLessonIndex, lessonLength, lessonTitle: initialLessonTitle, courseId: initialCourseId } =
@@ -227,4 +227,4 @@ const LessonDetails: React.FC = () => {
   );
 };
 
-export default LessonDetails;
+export default EnrolledLessonDetails;

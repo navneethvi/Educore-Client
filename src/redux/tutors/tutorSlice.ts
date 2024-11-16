@@ -119,6 +119,9 @@ const tutorSlice = createSlice({
   name: "tutor",
   initialState,
   reducers: {
+    setAccessToken: (state, action: PayloadAction<string>) => {
+      state.tutorToken = action.payload;
+    },
     resetActions: (state) => {
       state.success = false;
       state.error = "";
@@ -269,10 +272,38 @@ const tutorSlice = createSlice({
         state.loading = true;
       })
       .addCase(tutorLogout.fulfilled, (state) => {
-        state.tutorData = null;
-        state.tutorToken = null;
-        state.loading = false;
+        Object.assign(state, {
+          tutorData: null,
+          tutorToken: null,
+          success: false,
+          error: "",
+          loading: false,
+          message: "",
+          otpResendSuccess: false,
+          otpResendError: "",
+          otpResendLoading: false,
+          otpVerifySuccess: false,
+          otpVerifyLoading: false,
+          otpVerifyError: "",
+          approvedCourses: {
+            data: [],
+            totalPages: 1,
+            loading: false,
+            error: "",
+          },
+          totalPagesApproved: 1,
+          pendingCourses: {
+            data: [],
+            totalPages: 1,
+            loading: false,
+            error: "",
+          },
+          totalPagesPending: 1,
+          currentPageApproved: 1,
+          currentPagePending: 1,
+        });
       })
+
       .addCase(tutorLogout.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Logout failed";
@@ -300,8 +331,9 @@ const tutorSlice = createSlice({
         state.loading = true;
       })
       .addCase(tutorFetchCourses.fulfilled, (state, action) => {
-        const { data, totalPages } = action.payload.data; // Extract only the serializable data you need
-
+        const { data, totalPages } = action.payload; // Extract only the serializable data you need
+        console.log("payloaaaaaaad===>",action.payload);
+        
         if (action.meta.arg.status === true) {
           state.approvedCourses.data = data;
           state.totalPagesApproved = totalPages;
@@ -351,8 +383,7 @@ const tutorSlice = createSlice({
         state.loading = false;
         const editedCourse = action.payload.data.updatedCourse;
 
-        console.log("payloaaaaaaaad",editedCourse);
-        
+        console.log("payloaaaaaaaad", editedCourse);
 
         const updatedFields = {
           _id: editedCourse._id,
@@ -392,7 +423,7 @@ const tutorSlice = createSlice({
   },
 });
 
-export const { resetActions, tutorLogoutLocal, setTutorData } =
+export const { resetActions, tutorLogoutLocal, setTutorData, setAccessToken } =
   tutorSlice.actions;
 
 export default tutorSlice.reducer;

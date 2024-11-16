@@ -143,7 +143,7 @@ const AddCourses: React.FC = () => {
   };
 
   const handleSubmit = async (values: any) => {
-    setLoading(true); // Set loading to true when upload starts
+    setLoading(true); 
     try {
       const formData = new FormData();
       formData.append("title", values.title);

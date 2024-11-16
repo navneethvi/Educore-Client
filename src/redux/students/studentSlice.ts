@@ -73,6 +73,9 @@ const studentSlice = createSlice({
   name: "student",
   initialState,
   reducers: {
+    setAccessToken: (state, action: PayloadAction<string>) => {
+      state.studentToken = action.payload;
+    },
     resetActions: (state) => {
       state.success = false;
       state.error = "";
@@ -100,6 +103,7 @@ const studentSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+    
       .addCase(studentSignup.pending, (state) => {
         state.loading = true;
         state.error = "";
@@ -282,6 +286,6 @@ const studentSlice = createSlice({
   },
 });
 
-export const { resetActions, studentLogoutLocal } = studentSlice.actions;
+export const { resetActions, studentLogoutLocal, setAccessToken } = studentSlice.actions;
 
 export default studentSlice.reducer;

@@ -19,24 +19,16 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   return (
-    <div className="store-header flex justify-between items-center bg-white rounded-lg shadow-sm ">
-      <form
-        className="flex items-center max-w-sm w-full"
-        onSubmit={(e) => e.preventDefault()}
-      >
-        <label htmlFor="search-input" className="sr-only">
-          Search
-        </label>
-        <input
-          type="text"
-          id="search-input"
-          className="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-full h-10 focus:ring-blue-500 focus:border-transparent block w-full p-3 shadow-sm placeholder-gray-500"
-          placeholder={placeholder}
-          value={searchTerm}
-          onChange={handleSearchChange}
-        />
-      </form>
-    </div>
+    <div className="store-header flex justify-between items-center bg-white rounded-lg shadow-sm p-2 md:p-4">
+  <input
+    type="text"
+    className="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-full h-10 w-full focus:ring-blue-500 focus:border-transparent block p-3 placeholder-gray-500"
+    placeholder={placeholder}
+    value={searchTerm}
+    onChange={handleSearchChange}
+  />
+</div>
+
   );
 };
 

@@ -24,6 +24,7 @@ import {
   TutorResetPassData,
   CourseData,
 } from "../../types/types";
+import { setAccessToken } from "./tutorSlice";
 
 const handleThunkError = (error: any, thunkAPI: any) => {
   console.log(error);
@@ -150,7 +151,14 @@ export const tutorLogout = createAsyncThunk<
   { rejectValue: string }
 >("tutorLogout", async (token, thunkAPI) => {
   try {
-    await tutorLogoutService(token);
+    const response = await tutorLogoutService(token);
+    const newAccessToken = response.headers["authorization"]
+    ? response.headers["authorization"].split(" ")[1]
+    : null;
+
+  if (newAccessToken) {
+    thunkAPI.dispatch(setAccessToken(newAccessToken));
+  }
   } catch (error: any) {
     return handleThunkError(error, thunkAPI);
   }
@@ -169,14 +177,26 @@ export const tutorCreateCourse = createAsyncThunk<
     return handleThunkError(error, thunkAPI);
   }
 });
+
 export const tutorFetchCourses = createAsyncThunk<
   any,
   { token: string; tutorId: string; status: boolean },
   { rejectValue: string }
 >("tutorFetchCourses", async ({ token, tutorId, status }, thunkAPI) => {
   try {
+    console.log("her");
+    
     const response = await tutorFetchCoursesService(token, tutorId, status);
-    return response;
+    const newAccessToken = response.headers["authorization"]
+    ? response.headers["authorization"].split(" ")[1]
+    : null;
+
+  if (newAccessToken) {
+    thunkAPI.dispatch(setAccessToken(newAccessToken));
+  }
+  console.log("res.data", response.data);
+  
+    return response.data;
   } catch (error: any) {
     return handleThunkError(error, thunkAPI);
   }
@@ -204,7 +224,7 @@ export const tutorFetchCourseDetails = createAsyncThunk<
   try {
     const response = await tutorFetchCourseDetailsService(token, courseId);
     console.log("in TutorFetchCourseDetails===>", response);
-    return response;
+    return response.data;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(
       error.message || "Failed to fetch course details"

@@ -7,6 +7,9 @@ import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../../store/store";
 import { BASE_URL } from "../../../../utils/configs";
+import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
+import { studentCreatePayment } from "../../../../redux/students/studentActions";
+
 
 const CourseDetails = () => {
   const [loading, setLoading] = useState(true);
@@ -15,7 +18,10 @@ const CourseDetails = () => {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState(true);
 
-  const { studentToken } = useSelector((state: RootState) => state.student);
+  const stripe = useStripe();
+  const elements = useElements();
+
+  const { studentToken, studentData } = useSelector((state: RootState) => state.student);
 
   const dispatch: AppDispatch = useDispatch();
 
@@ -44,6 +50,47 @@ const CourseDetails = () => {
 
     fetchCourse();
   }, [courseId, dispatch, studentToken]);
+
+  const handleEnrollNow = async() => {
+
+    console.log("clicked");
+
+    console.log("stripe:", stripe);
+    console.log("elements:", elements);
+    
+    if (!stripe || !elements) return;
+
+    console.log("reached");
+
+    try {
+        const response = await dispatch(studentCreatePayment({
+            token: studentToken as string,
+            courseId: courseId as string,
+            studentId: studentData._id,
+        }));
+
+        console.log("Payment Intent Created:", response);     
+        
+        const sessionId = response.payload.sessionId;
+
+        console.log("sessionId=======>", sessionId);
+        
+        if (sessionId) {
+          const { error } = await stripe.redirectToCheckout({ sessionId });
+    
+          if (error) {
+            console.error("Error redirecting to Stripe:", error);
+            alert('Redirect to payment failed, please try again.');
+          }
+        } else {
+          alert('Unable to initiate payment, please try again.');
+        }
+
+    } catch (error) {
+        console.error('Error handling enrollment:', error);
+        alert('Enrollment failed, please try again.');
+    }
+  }
 
   const fetchThumbnailUrl = async (filename: string) => {
     try {
@@ -137,7 +184,7 @@ const CourseDetails = () => {
           <div className="price text-2xl font-bold text-green-600 mb-2">
             ${course.price || "49.99"}
           </div>
-          <button className="buttonenroll bg-blue-600 text-white px-4 py-2 rounded-md w-28">
+          <button className="buttonenroll bg-blue-600 text-white px-4 py-2 rounded-md w-28" onClick={handleEnrollNow}>
             Enroll Now
           </button>
         </div>

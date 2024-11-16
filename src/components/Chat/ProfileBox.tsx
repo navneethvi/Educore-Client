@@ -1,38 +1,55 @@
 import React from "react";
 
 interface ProfileBoxProps {
-  isSelected?: boolean; // New prop to determine if this box is selected
+  isSelected?: boolean; // Optional prop to determine if this box is selected
+  tutorInfo?: { name: string; image: string; _id: string }; // Optional tutorInfo prop
+  studentInfo?: { name: string; image: string; _id: string }; // Optional studentInfo prop
 }
 
-const ProfileBox: React.FC<ProfileBoxProps> = ({ isSelected }) => {
+const ProfileBox: React.FC<ProfileBoxProps> = ({
+  isSelected,
+  tutorInfo,
+  studentInfo,
+}) => {
+  // Determine whether to use tutorInfo or studentInfo
+  const info = tutorInfo || studentInfo;
+
+  // Do not render if neither tutorInfo nor studentInfo is provided
+  if (!info?.name) {
+    return null;
+  }
+
   return (
     <div
-      className={`profile-container flex items-center p-2 bg-white rounded-lg shadow-sm transition-transform cursor-pointer w-full 
-        ${isSelected ? "transform scale-105 bg-slate-300" : "hover:scale-105"}
+      className={`profile-container flex items-center p-2 bg-white rounded-lg shadow-md transition-transform cursor-pointer w-full 
+      ${
+        isSelected
+          ? "transform bg-zinc-200 scale-105 text-indigo-900"
+          : "hover:scale-105 hover:bg-slate-50"
+      }
       `}
     >
-      {/* Profile Picture */}
+      {/* Profile Image */}
       <div className="flex-shrink-0">
         <img
-          src="https://avatars.githubusercontent.com/u/108149371?v=4"
-          alt="Profile"
-          className="w-8 h-8 rounded-full" // Adjusted size to fit well
+          src={info.image} // Dynamically use the image from the selected info
+          alt={info.name} // Dynamically use the name for alt text
+          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-indigo-500"
         />
       </div>
 
       {/* Name and Last Message */}
-      <div className="flex-grow px-2">
-        <div className="name font-semibold text-gray-800 text-sm">User Name</div>
+      <div className="flex-grow px-2 text-xs sm:text-sm">
+        <div className="name text-gray-900 font-reem-kufi">{info.name}</div>
         <div className="last-message text-gray-500 text-xs truncate">
           Last message preview here...
         </div>
       </div>
 
-      {/* Date and Unread Messages */}
-      <div className="right-side flex flex-col items-end">
-        <div className="date text-xs text-gray-400">10:45 AM</div>
-        <div className="unread-messages bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-          3
+      {/* Unread Messages */}
+      <div className="unreaded-messages relative">
+        <div className="bg-indigo-500 text-white text-xs font-normal rounded-full w-5 h-5 flex items-center justify-center absolute top-0 right-0">
+          3 {/* Example unread messages count */}
         </div>
       </div>
     </div>

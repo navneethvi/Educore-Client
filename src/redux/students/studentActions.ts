@@ -11,6 +11,10 @@ import {
   studentGoogleSigninService,
   studentLogoutService,
   studentFetchCoursesService,
+  studentCreatePaymentService,
+  studentGetEnrolledCoursesService,
+  studentGetTutorInfoService,
+  getUsersWithExistingChatService,
 } from "./studentServices";
 
 import {
@@ -21,6 +25,7 @@ import {
   StudentSignupData,
   StudentVerifyOtp,
 } from "../../types/types";
+import { setAccessToken } from "./studentSlice";
 
 const handleThunkError = (error: any, thunkAPI: any) => {
   console.log(error);
@@ -162,6 +167,16 @@ export const studentLogout = createAsyncThunk<
 >("studentLogout", async (token, thunkAPI) => {
   try {
     const response = await studentLogoutService(token);
+    console.log("res.head==>", response.headers);
+    const newAccessToken = response.headers["authorization"]
+      ? response.headers["authorization"].split(" ")[1]
+      : null;
+
+    if (newAccessToken) {
+      console.log("New Access Token found in studentLogout:", newAccessToken);
+
+      thunkAPI.dispatch(setAccessToken(newAccessToken));
+    }
     console.log("in StudentLogout===>", response);
     return response.data;
   } catch (error: any) {
@@ -169,17 +184,99 @@ export const studentLogout = createAsyncThunk<
   }
 });
 
-
 export const studentFetchCourses = createAsyncThunk<
   any,
-  { token: string; limit: number; offset: number, searchTerm: string, categories: string[], sort: string },
+  {
+    token: string;
+    limit: number;
+    offset: number;
+    searchTerm: string;
+    categories: string[];
+    sort: string;
+  },
   { rejectValue: string }
->("studentfetchCourses", async ({ token, limit, offset, searchTerm, categories, sort }, thunkAPI) => {
+>(
+  "studentfetchCourses",
+  async ({ token, limit, offset, searchTerm, categories, sort }, thunkAPI) => {
+    try {
+      const response = await studentFetchCoursesService(
+        token,
+        limit,
+        offset,
+        searchTerm,
+        categories,
+        sort
+      );
+      console.log("Fetched courses:", response);
+      return response;
+    } catch (error: any) {
+      return handleThunkError(error, thunkAPI);
+    }
+  }
+);
+
+export const studentCreatePayment = createAsyncThunk<
+  any,
+  { token: string; courseId: string; studentId: string },
+  { rejectValue: string }
+>("studentCreatePayment", async ({ token, courseId, studentId }, thunkAPI) => {
   try {
-    const response = await studentFetchCoursesService(token, limit, offset, searchTerm, categories, sort);
-    console.log("Fetched courses:", response);
+    const response = await studentCreatePaymentService(
+      token,
+      courseId,
+      studentId
+    );
+    console.log("Create Payment:", response);
     return response;
   } catch (error: any) {
     return handleThunkError(error, thunkAPI);
   }
 });
+
+export const studentGetEnrolledCourses = createAsyncThunk(
+  "studentGetEnrolledCourses",
+  async (
+    { token, studentId }: { token: string; studentId: string },
+    thunkAPI
+  ) => {
+    try {
+      console.log("studentId received in action:", studentId); // Should log the studentId correctly
+      const response = await studentGetEnrolledCoursesService(token, studentId);
+      console.log("Fetched enrolled courses:", response);
+      return response.data;
+    } catch (error: any) {
+      // Handle any errors
+      return handleThunkError(error, thunkAPI);
+    }
+  }
+);
+
+export const studentGetTutorInfo = createAsyncThunk(
+  "studentGetTutorInfo",
+  async ({ token, tutorId }: { token: string; tutorId: string }, thunkAPI) => {
+    try {
+      console.log("tutorId received in action:", tutorId); // Should log the studentId correctly
+      const response = await studentGetTutorInfoService(token, tutorId);
+      console.log("Fetched tutor info :", response);
+      return response.data;
+    } catch (error: any) {
+      // Handle any errors
+      return handleThunkError(error, thunkAPI);
+    }
+  }
+);
+
+export const getUsersWithExistingChat = createAsyncThunk(
+  "getUsersWithExistingChat",
+  async ({ token, userId, userType }: { token: string; userId: string, userType: string }, thunkAPI) => {
+    try {
+      console.log("existing chat received in action:", userId);
+      const response = await getUsersWithExistingChatService(token, userId, userType);
+      console.log("Fetched existing chat i=userws info :", response);
+      return response.data;
+    } catch (error: any) {
+      // Handle any errors
+      return handleThunkError(error, thunkAPI);
+    }
+  }
+);

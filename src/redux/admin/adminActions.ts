@@ -14,7 +14,6 @@ import {
   adminApproveCourseService,
   adminLogoutService,
   adminFetchLessonDetailsService,
-
   fetchCategoriesService,
 } from "./adminServices";
 
@@ -28,6 +27,7 @@ import {
 import axios from "axios";
 
 import { Category } from "../../types/types";
+import { setAccessToken } from "./adminSlice";
 
 export const adminSignin = createAsyncThunk<
   AdminResponse,
@@ -52,7 +52,18 @@ export const adminLogout = createAsyncThunk<
   { rejectValue: string }
 >("adminLogout", async (token, thunkAPI) => {
   try {
-    await adminLogoutService(token);
+    const response = await adminLogoutService(token);
+
+    console.log("response in adminLogout===========>", response);
+
+    const newAccessToken = response.headers["authorization"]
+      ? response.headers["authorization"].split(" ")[1]
+      : null;
+
+    if (newAccessToken) {
+      thunkAPI.dispatch(setAccessToken(newAccessToken));
+    }
+    return response.data;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(error.message || error.response.data.error);
   }
@@ -67,7 +78,14 @@ export const fetchStudents = createAsyncThunk<
 >("fetchStudents", async ({ token, page, searchTerm }, thunkAPI) => {
   try {
     const response = await getStudentsDataService(token, page, searchTerm);
-    return response;
+    const newAccessToken = response.headers["authorization"]
+      ? response.headers["authorization"].split(" ")[1]
+      : null;
+
+    if (newAccessToken) {
+      thunkAPI.dispatch(setAccessToken(newAccessToken));
+    }
+    return response.data;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(
       error.message || error.response?.data?.error
@@ -84,7 +102,7 @@ export const fetchTutors = createAsyncThunk<
 >("fetchTutors", async ({ token, page, searchTerm }, thunkAPI) => {
   try {
     const response = await getTutorsDataService(token, page, searchTerm);
-    return response;
+    return response.data;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(
       error.message || error.response?.data?.error
@@ -108,13 +126,20 @@ export const fetchCategories = createAsyncThunk<
 });
 
 export const addCategory = createAsyncThunk<
-  Category, // Should return a Category
+  Category,
   { token: string; name: string },
   { rejectValue: string }
 >("addCategory", async ({ token, name }, thunkAPI) => {
   try {
     const response = await addCategoryService(token, name);
-    return response; // Assuming response is a Category
+    const newAccessToken = response.headers["authorization"]
+      ? response.headers["authorization"].split(" ")[1]
+      : null;
+
+    if (newAccessToken) {
+      thunkAPI.dispatch(setAccessToken(newAccessToken));
+    }
+    return response.data;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(
       error.message || error.response?.data?.error || "An error occurred"
@@ -131,6 +156,13 @@ export const deleteCategory = createAsyncThunk<
 >("deleteCategory", async ({ token, category_id }, thunkAPI) => {
   try {
     const response = await deleteCategoryService(token, category_id);
+    const newAccessToken = response.headers["authorization"]
+      ? response.headers["authorization"].split(" ")[1]
+      : null;
+
+    if (newAccessToken) {
+      thunkAPI.dispatch(setAccessToken(newAccessToken));
+    }
     return response;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(
@@ -148,7 +180,14 @@ export const toggleBlockTutor = createAsyncThunk<
 >("toggleBlockTutor", async ({ token, tutorId }, thunkAPI) => {
   try {
     const response = await toggleBlockTutorService(token, tutorId);
-    return response;
+    const newAccessToken = response.headers["authorization"]
+      ? response.headers["authorization"].split(" ")[1]
+      : null;
+
+    if (newAccessToken) {
+      thunkAPI.dispatch(setAccessToken(newAccessToken));
+    }
+    return response.data;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(
       error.message || error.response?.data?.error || "An error occurred"
@@ -170,7 +209,14 @@ export const toggleBlockStudent = createAsyncThunk<
 >("toggleBlockStudent", async ({ token, studentId }, thunkAPI) => {
   try {
     const response = await toggleBlockStudentService(token, studentId);
-    return response;
+    const newAccessToken = response.headers["authorization"]
+      ? response.headers["authorization"].split(" ")[1]
+      : null;
+
+    if (newAccessToken) {
+      thunkAPI.dispatch(setAccessToken(newAccessToken));
+    }
+    return response.data;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(
       error.message || error.response?.data?.error || "An error occurred"
@@ -188,7 +234,16 @@ export const getAllCourses = createAsyncThunk<
   try {
     console.log("status in getAllcourse ===>", status);
     const response = await getALlCoursesService(token, status);
-    return response;
+    const newAccessToken = response.headers["authorization"]
+      ? response.headers["authorization"].split(" ")[1]
+      : null;
+
+    if (newAccessToken) {
+      console.log("New Access Token found in studentLogout:", newAccessToken);
+
+      thunkAPI.dispatch(setAccessToken(newAccessToken));
+    }
+    return response.data;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(
       error.message || error.response?.data?.error || "An error occurred"
@@ -222,7 +277,7 @@ export const adminApproveCourse = createAsyncThunk<
 >("adminApproveCourse", async ({ token, courseId }, thunkAPI) => {
   try {
     console.log("hitted action");
-    
+
     const response = await adminApproveCourseService(token, courseId);
     return response;
   } catch (error: any) {
@@ -262,25 +317,24 @@ export const adminFetchLessonDetails = createAsyncThunk<
 
 export const fetchAllCategories = createAsyncThunk<
   Category[],
-   void,
+  void,
   {
     rejectValue: string;
   }
->(
-  "fetchAllCategories",
-  async (_, thunkAPI) => {
-    try {
-      console.log("Fetching categories...");
+>("fetchAllCategories", async (_, thunkAPI) => {
+  try {
+    console.log("Fetching categories...");
 
-      const response = await fetchCategoriesService();
+    const response = await fetchCategoriesService();
 
-      console.log("Response in action", response);
+    console.log("Response in action", response);
 
-      return response;
-    }  catch (error: any) {
-      return thunkAPI.rejectWithValue(
-        error.message || error.response?.data?.error || "An error occurred while fetching categories"
-      );
-    }
+    return response;
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue(
+      error.message ||
+        error.response?.data?.error ||
+        "An error occurred while fetching categories"
+    );
   }
-);
+});
