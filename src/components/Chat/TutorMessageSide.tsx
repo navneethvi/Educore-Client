@@ -48,16 +48,73 @@ useEffect(() => {
 
     socket.emit("join-room", chatId);
 
-    socket.on("receive_message", (message: any) => {
+    socket.on("receive-message", (message: any) => {
       setMessages((prevMessages) => [...prevMessages, message]);
     });
   }
 
   return () => {
-    socket.off("receive_message");
+    socket.off("receive-message");
     console.log("Socket event unsubscribed (Tutor Side)");
   };
 }, [ selectedStudent, tutorData?._id]);
+
+
+useEffect(() => {
+    if (selectedStudent) {   
+      const chatId = [tutorData?._id, selectedStudent?._id]
+        .filter(Boolean) // Ensure no undefined values
+        .sort() // Alphabetical order for consistency
+        .join("_"); // Join with separator
+  
+      console.log("Generated chatId (Tutor Side):", chatId);
+      setChatId(chatId);
+  
+      socket.emit("join-room", chatId);
+  
+      const fetchChatHistory = async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/chat/messages`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json", // Ensure the content type is set to JSON
+                  Authorization: `Bearer ${tutorToken}`, // Include the tutor token for authorization
+                },
+                body: JSON.stringify({tutorId: tutorData?._id, studentId: selectedStudent?._id }), // Pass chatId as the request body
+              });
+              
+  
+          if (response.ok) {
+            const data = await response.json();
+            console.log("Chat history:", data);
+            setMessages(data.messages || []); // Set fetched messages
+          } else {
+            console.error("Failed to fetch chat history:", await response.text());
+            setMessages([]); // Clear messages on error
+          }
+        } catch (error) {
+          console.error("Error fetching chat history:", error);
+          setMessages([]); // Clear messages on exception
+        }
+      };
+  
+      fetchChatHistory();
+  
+      socket.on("receive-message", (message: any) => {
+        setMessages((prevMessages) => [...prevMessages, message]);
+      });
+    } else {
+      // Clear chat when no student is selected
+      setMessages([]);
+    }
+  
+    return () => {
+      socket.off("receive_message");
+      console.log("Socket event unsubscribed (Tutor Side)");
+    };
+  }, [selectedStudent, tutorData?._id, tutorToken]);
+  
+  
 
   
 
@@ -69,7 +126,7 @@ useEffect(() => {
     if (!chatId || !text.trim()) return;
 
     const messagePayload = { roomId: chatId, message: text, sender: "me" };
-    socket.emit("send_message", messagePayload);
+    socket.emit("send-message", messagePayload);
     setMessages((prevMessages) => [...prevMessages, { text, sender: "me" }]);
   };
 
@@ -83,9 +140,11 @@ useEffect(() => {
           const existingChat = existingChats.find(
             (chat) => chat.name === selectedStudent?.name
           );
+
+          console.log("existingchat====>",existingChat);
+          
   
           if (!existingChat) {
-            // Create a new chat if not found
             const response = await fetch(`${BASE_URL}/chat/create-chat`, {
               method: "POST",
               headers: {
@@ -104,13 +163,12 @@ useEffect(() => {
               console.log("New chat created:", data);
               setChatId(data._id);
   
-              // Update existing chats
               setExistingChats?.((prevChats) => [...prevChats, data]);
             } else {
               throw new Error(data.message || "Failed to create chat");
             }
           } else {
-            setChatId(existingChat._id); // Use existing chat ID
+            setChatId(existingChat._id); 
           }
         }
   
@@ -118,16 +176,18 @@ useEffect(() => {
           console.error("Chat ID is undefined");
           return;
         }
-  
-        // Send the message
-        await sendMessageToChat(chatId, message);
+        console.log("chatId",chatId, "message", message);
+
+        
+        
+        sendMessageToChat(chatId, message);
   
         setMessages((prevMessages) => [
           ...prevMessages,
           { text: message, sender: "me" },
         ]);
   
-        setMessage(""); // Clear input
+        setMessage(""); 
       } catch (error) {
         console.error("Failed to create chat or send message:", error);
       }

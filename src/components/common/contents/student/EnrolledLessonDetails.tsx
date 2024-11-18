@@ -84,22 +84,68 @@ const EnrolledLessonDetails: React.FC = () => {
   };
 
   const handleDownloadMaterials = async () => {
-    const presignedUrl = await fetchPresignedUrl(lessonDetails?.materials);
-    if (presignedUrl) {
-      window.open(presignedUrl, "_blank");
-    } else {
-      console.error("Failed to fetch materials.");
+    try {
+      const presignedUrl = await fetchPresignedUrl(lessonDetails?.materials);
+  
+      if (presignedUrl) {
+        const response = await fetch(presignedUrl);
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch the file.");
+        }
+  
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+  
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.download = "materials"; // Optional: Provide a filename with extension (e.g., "materials.pdf")
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+  
+        // Clean up the object URL to avoid memory leaks
+        URL.revokeObjectURL(objectUrl);
+      } else {
+        console.error("Failed to fetch the pre-signed URL.");
+      }
+    } catch (error) {
+      console.error("Error downloading materials:", error);
     }
   };
+  
 
   const handleDownloadHomeworks = async () => {
-    const presignedUrl = await fetchPresignedUrl(lessonDetails?.homework);
-    if (presignedUrl) {
-      window.open(presignedUrl, "_blank");
-    } else {
-      console.error("Failed to fetch homeworks.");
+    try {
+      const presignedUrl = await fetchPresignedUrl(lessonDetails?.homework);
+  
+      if (presignedUrl) {
+        const response = await fetch(presignedUrl);
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch the file.");
+        }
+  
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+  
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.download = "homework"; 
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+  
+        URL.revokeObjectURL(objectUrl);
+      } else {
+        console.error("Failed to fetch the pre-signed URL.");
+      }
+    } catch (error) {
+      console.error("Error downloading homework:", error);
     }
   };
+  
+  
 
   // Video player options
   const videoJsOptions = {

@@ -67,39 +67,46 @@ const Category: React.FC = () => {
     setCurrentPage(value);
   };
 
-  const handleAddCategory = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+ const handleAddCategory = (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
 
-    if (!newCategory.trim()) {
-      toast.error("Please enter a category name!");
-      return;
-    }
+  if (!newCategory.trim()) {
+    toast.error("Please enter a category name!");
+    return;
+  }
 
-    if (!adminToken) {
-      toast.error("Admin token is missing!");
-      return;
-    }
+  if (!adminToken) {
+    toast.error("Admin token is missing!");
+    return;
+  }
 
-    dispatch(addCategory({ token: adminToken, name: newCategory.trim() }))
-      .unwrap()
-      .then((newCategory) => {
-        // Fetch categories again after adding a new one
-        dispatch(fetchCategories({ token: adminToken, page: currentPage }))
-          .unwrap()
-          .then((response: CategoriesResponse) => {
-            setCategories(response.categories || []);
-            setTotalPages(response.totalPages || 0);
-            toast.success("Category added successfully!");
-            setNewCategory("");
-          })
-          .catch((error) => {
-            toast.error(`Error fetching categories after addition: ${error}`);
-          });
-      })
-      .catch((err) => {
-        toast.error(`${err}`);
-      });
-  };
+  dispatch(addCategory({ token: adminToken, name: newCategory.trim() }))
+    .unwrap()
+    .then((addedCategory) => {
+      // Prepend the newly added category to the state
+      setCategories((prevCategories) => [
+        addedCategory, // Add the new category at the top
+        ...prevCategories,
+      ]);
+      
+      toast.success("Category added successfully!");
+      setNewCategory("");
+
+      // Optionally, fetch the updated list to ensure accuracy
+      dispatch(fetchCategories({ token: adminToken, page: currentPage }))
+        .unwrap()
+        .then((response: CategoriesResponse) => {
+          setCategories(response.categories || []);
+          setTotalPages(response.totalPages || 0);
+        })
+        .catch((error) => {
+          toast.error(`Error fetching categories after addition: ${error}`);
+        });
+    })
+    .catch((err) => {
+      toast.error(`${err}`);
+    });
+};
 
   const handleDeleteCategory = (categoryId: string) => {
     if (!adminToken) {

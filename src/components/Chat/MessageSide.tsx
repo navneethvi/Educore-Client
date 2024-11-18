@@ -76,6 +76,8 @@ const MessageSide: React.FC<MessageSideProps> = ({
     setMessages((prevMessages) => [...prevMessages, { text, sender: "me" }]);
   };
 
+
+
   const handleSendMessage = async () => {
     if (message.trim()) {
       try {

@@ -17,7 +17,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { Upload, Delete } from "@mui/icons-material";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Cropper, { ReactCropperElement } from "react-cropper";
 import "cropperjs/dist/cropper.css";
 import { Formik, Field, Form, FieldArray } from "formik";
@@ -143,7 +143,7 @@ const AddCourses: React.FC = () => {
   };
 
   const handleSubmit = async (values: any) => {
-    setLoading(true); 
+    setLoading(true);
     try {
       const formData = new FormData();
       formData.append("title", values.title);
@@ -155,7 +155,6 @@ const AddCourses: React.FC = () => {
       for (const [index, lesson] of values.lessons.entries()) {
         formData.append(`lessons[${index}][title]`, lesson.title);
         formData.append(`lessons[${index}][goal]`, lesson.goal);
-
 
         if (lesson.video) {
           const videoFilename = await uploadLessonFile(lesson.video);
