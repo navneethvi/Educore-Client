@@ -28,11 +28,32 @@ import {
 import { setAccessToken } from "./studentSlice";
 
 const handleThunkError = (error: any, thunkAPI: any) => {
-  console.log(error);
-  return thunkAPI.rejectWithValue(
-    error.message || error.response?.data?.error || "Unknown error"
-  );
+  console.error("Thunk Error:", error);
+
+  // Check if the error is an Axios error with a response
+  if (error.response) {
+    // HTTP error from server
+    const status = error.response.status;
+    const message = error.response.data?.error || error.response.data?.message;
+
+    // Handle specific status codes if needed
+    if (status === 409) {
+      return thunkAPI.rejectWithValue("You are already enrolled in this course.");
+    } else if (status === 400) {
+      return thunkAPI.rejectWithValue("Bad Request. Please check your input.");
+    }
+
+    // Return generic message for other HTTP errors
+    return thunkAPI.rejectWithValue(message || "Server error occurred.");
+  } else if (error.request) {
+    // Network error or no response received
+    return thunkAPI.rejectWithValue("Network error. Please check your connection.");
+  } else {
+    // General JavaScript error or unexpected issue
+    return thunkAPI.rejectWithValue(error.message || "An unexpected error occurred.");
+  }
 };
+
 
 export const studentSignup = createAsyncThunk<
   any,

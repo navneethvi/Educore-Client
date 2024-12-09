@@ -9,7 +9,11 @@ import { ExistingChat } from "../common/contents/student/Messages";
 interface ChatSideProps {
   tutorInfo?: { name: string; image: string; _id: string };
   existingChats?: ExistingChat[];
-  onTutorSelect: (selectedTutor: { name: string; image: string; _id: string }) => void;
+  onTutorSelect: (selectedTutor: {
+    name: string;
+    image: string;
+    _id: string;
+  }) => void;
 }
 
 const ChatSideBar: React.FC<ChatSideProps> = ({
@@ -17,7 +21,9 @@ const ChatSideBar: React.FC<ChatSideProps> = ({
   existingChats = [],
   onTutorSelect,
 }) => {
-  const [selectedProfileIndex, setSelectedProfileIndex] = useState<number | null>(null);
+  const [selectedProfileIndex, setSelectedProfileIndex] = useState<
+    number | null
+  >(null);
 
   const { studentToken, studentData } = useSelector(
     (state: RootState) => state.student
@@ -29,6 +35,7 @@ const ChatSideBar: React.FC<ChatSideProps> = ({
   ) => {
     setSelectedProfileIndex(index);
     onTutorSelect(selectedTutor);
+    
   };
 
   const hasChats = Array.isArray(existingChats) && existingChats.length > 0;
@@ -68,9 +75,11 @@ const ChatSideBar: React.FC<ChatSideProps> = ({
 
         {hasChats &&
           existingChats.map((chat, index) => {
-            const otherMember = chat.chatMembers.find(
-              (member) => member._id !== studentData?._id
-            );
+            const otherMember = Array.isArray(chat.chatMembers)
+              ? chat.chatMembers.find(
+                  (member) => member._id !== studentData?._id
+                )
+              : null;
 
             return otherMember ? (
               <motion.div
@@ -93,7 +102,9 @@ const ChatSideBar: React.FC<ChatSideProps> = ({
                     name: otherMember.name,
                     image: otherMember.image,
                     _id: otherMember._id,
+                    
                   }}
+                  lastMessage={chat.lastMessage}
                 />
               </motion.div>
             ) : null;

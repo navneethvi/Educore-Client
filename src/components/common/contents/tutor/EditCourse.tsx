@@ -35,6 +35,7 @@ import { courseValidationSchema } from "../../../../validations/courseValidation
 import { BASE_URL } from "../../../../utils/configs";
 import { uploadFileToS3 } from "../../../../utils/s3";
 import axios from "axios";
+import Compressor from "compressorjs";
 
 interface LessonType {
   title: string;
@@ -282,14 +283,54 @@ const EditCourse: React.FC = () => {
       }
     }
 
+    const compressImage = (file: File, quality = 0.3): Promise<File> => {
+      return new Promise((resolve, reject) => {
+        new Compressor(file, {
+          quality, // Lower quality for higher compression
+          convertSize: 500000, // Convert files larger than 500KB to JPEG
+          success: (compressedFile) => {
+            console.log("Compression successful:");
+            console.log("Original size:", file.size);
+            console.log("Compressed size:", compressedFile.size);
+            resolve(compressedFile as File);
+          },
+          error: (err) => {
+            console.error("Compression failed:", err);
+            reject(err);
+          },
+        });
+      });
+    };
+    
     if (croppedThumbnail && croppedThumbnail.startsWith("data:image/")) {
-      const thumbnailBlob = dataURLtoBlob(croppedThumbnail);
-      const thumbnailFile = blobToFile(thumbnailBlob, "thumbnail.png");
-      const thumbnailFilename = await uploadLessonFile(thumbnailFile);
-      formData.append("thumbnail", thumbnailFilename);
+      let thumbnailFile: File | null = null;
+    
+      try {
+        const thumbnailBlob = dataURLtoBlob(croppedThumbnail);
+        thumbnailFile = blobToFile(thumbnailBlob, "thumbnail.png");
+    
+        // Compress the thumbnail file
+        const compressedThumbnailFile = await compressImage(thumbnailFile);
+    
+        // Upload the compressed file
+        const thumbnailFilename = await uploadLessonFile(compressedThumbnailFile);
+        formData.append("thumbnail", thumbnailFilename);
+      } catch (error) {
+        console.error("Error during compression or upload:", error);
+    
+        if (thumbnailFile) {
+          // Fallback: Upload the original thumbnail file
+          const thumbnailFilename = await uploadLessonFile(thumbnailFile);
+          formData.append("thumbnail", thumbnailFilename);
+        } else {
+          console.error("Thumbnail file not created, skipping upload.");
+        }
+      }
     } else {
       formData.append("thumbnail", courseDetails.thumbnail);
     }
+    
+    
 
     try {
       // Dispatch the update course action

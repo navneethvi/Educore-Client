@@ -130,6 +130,25 @@ const tutorSlice = createSlice({
       state.otpResendSuccess = false;
       state.otpResendError = "";
       state.otpResendLoading = false;
+      state.otpVerifySuccess = false;
+      state.otpVerifyLoading = false;
+      state.otpVerifyError = "";
+      state.approvedCourses = {
+        data: [],
+        totalPages: 1,
+        loading: false,
+        error: "",
+      };
+      state.pendingCourses = {
+        data: [],
+        totalPages: 1,
+        loading: false,
+        error: "",
+      };
+      state.totalPagesApproved = 1;
+      state.totalPagesPending = 1;
+      state.currentPageApproved = 1;
+      state.currentPagePending = 1;
     },
     tutorLogoutLocal: (state) => {
       state.tutorData = null;
@@ -332,8 +351,8 @@ const tutorSlice = createSlice({
       })
       .addCase(tutorFetchCourses.fulfilled, (state, action) => {
         const { data, totalPages } = action.payload; // Extract only the serializable data you need
-        console.log("payloaaaaaaad===>",action.payload);
-        
+        console.log("payloaaaaaaad===>", action.payload);
+
         if (action.meta.arg.status === true) {
           state.approvedCourses.data = data;
           state.totalPagesApproved = totalPages;

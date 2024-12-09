@@ -6,6 +6,7 @@ import {
   studentGetTutorInfo,
   getUsersWithExistingChat,
 } from "../../../../redux/students/studentActions";
+import { setExistingChats } from "../../../../redux/students/studentSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../../store/store";
 import socket from "../../../../utils/socket";
@@ -23,7 +24,11 @@ interface ChatMember {
 }
 
 export interface ExistingChat {
+  name: string;
+  image: string;
   chatMembers: ChatMember[];
+  lastMessage: string;
+  lastMessageAt: string;
   _id: string;
 }
 
@@ -50,6 +55,7 @@ const Messages: React.FC = () => {
     _id: string;
   }) => {
     setSelectedTutor(tutor);
+    setTutorInfo(null); // Clear tutorInfo to avoid conflicts
   };
 
   console.log("selectedTutor=====>", selectedTutor);
@@ -64,8 +70,8 @@ const Messages: React.FC = () => {
             userType: "Student",
           })
         );
-        setExistingChats(response.payload.chats as ExistingChat[]); // Cast to correct type
-        console.log("Fetched existing chats:", response.payload); // Check the response structure
+        console.log("Raw API Response:", response.payload);
+        setExistingChats(response.payload.chats); // Cast to correct type
       } catch (error) {
         console.error("Failed to fetch existing chats:", error);
       }
@@ -73,28 +79,43 @@ const Messages: React.FC = () => {
 
     fetchExistingChats();
   }, [dispatch, studentToken]);
+  console.log("existingChatsunni========>", existingChats);
 
   useEffect(() => {
     if (!tutorId) {
-      // Handle case when no tutorId is provided
+      console.warn("No tutorId provided. Skipping fetch.");
+      return;
+    }
+  
+    // Check if the tutor already exists in existingChats
+    const chatExists = existingChats.some((chat) =>
+      chat.chatMembers.some((member) => member._id === tutorId)
+    );
+  
+    if (chatExists) {
+      console.log("Chat with this tutor already exists. Skipping fetch.");
+      setTutorInfo(null)
+      navigate("/messages");  // Navigate to the existing chat page
       return;
     }
 
+
+  
     const fetchTutorInfo = async () => {
       try {
         const response = await dispatch(
           studentGetTutorInfo({ token: studentToken as string, tutorId })
         );
         console.log("tutorInfo fetched=====>", response.payload);
-
         setTutorInfo(response.payload);
       } catch (error) {
         console.error("Failed to fetch tutor info:", error);
       }
     };
-
+  
     fetchTutorInfo();
-  }, [dispatch, tutorId, studentToken]);
+  }, [dispatch, tutorId, studentToken, existingChats]);
+  
 
   console.log("existing Chat=====>", existingChats);
 
@@ -115,14 +136,14 @@ const Messages: React.FC = () => {
         {tutorInfo || selectedTutor ? (
           <MessageSide
             tutorInfo={{
-              name: tutorInfo?.name ?? "",
-              image: tutorInfo?.image ?? "",
-              tutorId: tutorInfo?._id ?? "",
+              name: tutorInfo?.name ?? selectedTutor?.name ?? "", // Use selectedTutor if tutorInfo is undefined
+              image: tutorInfo?.image ?? selectedTutor?.image ?? "", // Same for image
+              tutorId: tutorInfo?._id ?? selectedTutor?._id ?? "", // Same for tutorId
             }}
             existingChats={existingChats.map((chat) => ({
-              _id: chat._id,
-              name: chat.chatMembers[0]?.name || "Unknown",
-              image: chat.chatMembers[0]?.image || "",
+              _id: chat._id as string,
+              name: chat?.name || "Unknown", // Provide default "Unknown" if name is missing
+              image: chat?.image || "", // Default image if missing
             }))}
             setExistingChats={setExistingChats}
             selectedTutor={selectedTutor}

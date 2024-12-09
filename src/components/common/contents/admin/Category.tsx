@@ -162,6 +162,7 @@ const Category: React.FC = () => {
         alignItems="flex-start"
         p={4}
         height="100%"
+        marginTop="40px"
       >
         {/* Left Side - Category Table */}
         <motion.div

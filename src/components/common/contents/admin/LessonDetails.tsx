@@ -93,11 +93,32 @@ const LessonDetails: React.FC = () => {
   };
 
   const handleDownloadHomeworks = async () => {
-    const presignedUrl = await fetchPresignedUrl(lessonDetails?.homework);
-    if (presignedUrl) {
-      window.open(presignedUrl, "_blank");
-    } else {
-      console.error("Failed to fetch homeworks.");
+    try {
+      const presignedUrl = await fetchPresignedUrl(lessonDetails?.homework);
+  
+      if (presignedUrl) {
+        const response = await fetch(presignedUrl);
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch the file.");
+        }
+  
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+  
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.download = "homework"; 
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+  
+        URL.revokeObjectURL(objectUrl);
+      } else {
+        console.error("Failed to fetch the pre-signed URL.");
+      }
+    } catch (error) {
+      console.error("Error downloading homework:", error);
     }
   };
 

@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { AppDispatch } from "../../../store/store";
 import { useNavigate } from "react-router-dom";
 import { tutorLogout } from "../../../redux/tutors/tutorActions";
+import { resetActions } from "../../../redux/tutors/tutorSlice";
 
 interface ProfileBoxProps {
   anchorEl: null | HTMLElement;
@@ -29,8 +30,9 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({
     handleClose();
     if (token) {
       await dispatch(tutorLogout(token));
+      dispatch(resetActions()); // Reset Redux state
       navigate("/tutor/signin", {
-        state: { message: "Logout Successfull" },
+        state: { message: "Logout Successful" }, // You can add this message
       });
     }
   };

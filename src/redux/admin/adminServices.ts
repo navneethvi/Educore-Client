@@ -214,6 +214,7 @@ const getALlCoursesService = async (
   }
 };
 
+
 const getCourseDetailsService = async (
   token: string,
   id: string

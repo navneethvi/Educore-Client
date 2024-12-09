@@ -3,13 +3,13 @@ import ReviewCard from "../../ReviewCard";
 import StarIcon from "@mui/icons-material/Star";
 import PersonIcon from "@mui/icons-material/Person";
 import { getCourseDetails } from "../../../../redux/admin/adminActions";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../../store/store";
 import { BASE_URL } from "../../../../utils/configs";
 import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import { studentCreatePayment } from "../../../../redux/students/studentActions";
-
+import Swal from "sweetalert2";
 
 const CourseDetails = () => {
   const [loading, setLoading] = useState(true);
@@ -17,11 +17,14 @@ const CourseDetails = () => {
   const [course, setCourse] = useState<any>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState(true);
-
+  const [reviews, setReviews] = useState<any[]>([]);
   const stripe = useStripe();
   const elements = useElements();
+  const navigate = useNavigate();
 
-  const { studentToken, studentData } = useSelector((state: RootState) => state.student);
+  const { studentToken, studentData } = useSelector(
+    (state: RootState) => state.student
+  );
 
   const dispatch: AppDispatch = useDispatch();
 
@@ -51,46 +54,82 @@ const CourseDetails = () => {
     fetchCourse();
   }, [courseId, dispatch, studentToken]);
 
-  const handleEnrollNow = async() => {
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch(
+          `${BASE_URL}/course/get-reviews/?courseId=${courseId}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch reviews");
+        }
+        const data = await response.json();
+        console.log("reviews--->", data);
+        
+        setReviews(data);
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+      }
+    };
 
+    if (courseId) {
+      console.log("courseID", courseId);
+      
+      fetchReviews();
+    }
+  }, [courseId]);
+
+  const handleEnrollNow = async () => {
     console.log("clicked");
 
-    console.log("stripe:", stripe);
-    console.log("elements:", elements);
-    
     if (!stripe || !elements) return;
 
-    console.log("reached");
-
     try {
-        const response = await dispatch(studentCreatePayment({
-            token: studentToken as string,
-            courseId: courseId as string,
-            studentId: studentData._id,
-        }));
+      const response = await dispatch(
+        studentCreatePayment({
+          token: studentToken as string,
+          courseId: courseId as string,
+          studentId: studentData._id,
+        })
+      );
 
-        console.log("Payment Intent Created:", response);     
-        
-        const sessionId = response.payload.sessionId;
+      console.log("Payment Intent Created:", response);
 
-        console.log("sessionId=======>", sessionId);
-        
-        if (sessionId) {
-          const { error } = await stripe.redirectToCheckout({ sessionId });
-    
-          if (error) {
-            console.error("Error redirecting to Stripe:", error);
-            alert('Redirect to payment failed, please try again.');
-          }
-        } else {
-          alert('Unable to initiate payment, please try again.');
+      if (response.type === "studentCreatePayment/rejected") {
+        Swal.fire({
+          title: "Enrollment Failed",
+          text: "You are already enrolled in this course.",
+          customClass: {
+            popup: "custom-popup", // Custom class for the popup
+            title: "custom-title", // Custom class for the title
+            htmlContainer: "custom-text", // Custom class for the text
+          },
+          background: "#fdf2f2", // Light red background
+          color: "#721c24", // Text color to match the error theme
+          showConfirmButton: true, // Display the "OK" button
+          confirmButtonText: "Close", // Button text
+          confirmButtonColor: "#f44336", // Button color (red)
+        });
+        return;
+      }
+
+      const sessionId = response.payload.sessionId;
+
+      if (sessionId) {
+        const { error } = await stripe.redirectToCheckout({ sessionId });
+
+        if (error) {
+          console.error("Error redirecting to Stripe:", error);
+          alert("Redirect to payment failed, please try again.");
         }
-
+      } else {
+        alert("Unable to initiate payment, please try again.");
+      }
     } catch (error) {
-        console.error('Error handling enrollment:', error);
-        alert('Enrollment failed, please try again.');
+      console.error("Error handling enrollment:", error);
+      alert("Enrollment failed, please try again.");
     }
-  }
+  };
 
   const fetchThumbnailUrl = async (filename: string) => {
     try {
@@ -167,10 +206,15 @@ const CourseDetails = () => {
           </button>
         </div>
         <div className="reviews h-48 p-4 bg-gray-100 rounded-lg overflow-y-scroll scrollbar-hide">
-          <ReviewCard />
-          <ReviewCard />
-          <ReviewCard />
-          <ReviewCard />
+          {reviews.map((review) => (
+            <ReviewCard
+              key={review._id}
+              reviewBy={review.reviewBy}
+              review={review.review}
+              rating={review.rating}
+              courseName={"Course Name Here"} // Replace with actual course name if available
+            />
+          ))}
         </div>
       </div>
 
@@ -184,7 +228,10 @@ const CourseDetails = () => {
           <div className="price text-2xl font-bold text-green-600 mb-2">
             ${course.price || "49.99"}
           </div>
-          <button className="buttonenroll bg-blue-600 text-white px-4 py-2 rounded-md w-28" onClick={handleEnrollNow}>
+          <button
+            className="buttonenroll bg-blue-600 text-white px-4 py-2 rounded-md w-28"
+            onClick={handleEnrollNow}
+          >
             Enroll Now
           </button>
         </div>

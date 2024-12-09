@@ -26,9 +26,9 @@ const TutorSideBar: React.FC<SideBarProps> = ({ isCollapsed, onToggle }) => {
   const sidebarItems = [
     { to: "/tutor/dashboard", icon: <DashboardIcon />, label: "Dashboard" },
     { to: "/tutor/courses", icon: <LibraryBooksIcon />, label: "Courses" },
-    { to: "/tutor/students", icon: <PersonIcon />, label: "Students" },
+    // { to: "/tutor/students", icon: <PersonIcon />, label: "Students" },
     { to: "/tutor/messages", icon: <MessageIcon />, label: "Message" },
-    { to: "/tutor/webinar", icon: <LiveTvIcon />, label: "Webinar" },
+    // { to: "/tutor/webinar", icon: <LiveTvIcon />, label: "Webinar" },
     { to: "/tutor/add-course", icon: <AddCardIcon />, label: "Add Course" },
   ];
 

@@ -17,17 +17,3 @@ export const uploadFileToS3 = async (
     console.error("Error uploading file to S3:", error);
   }
 };
-
-const handleFileUpload = async (file: File, filename: string) => {
-  try {
-    const { data } = await axios.get("/api/get-upload-url", {
-      params: { key: filename, contentType: file.type },
-    });
-
-    const presignedUrl = data.url;
-
-    await uploadFileToS3(presignedUrl, file);
-  } catch (error) {
-    console.error("Error uploading file:", error);
-  }
-};

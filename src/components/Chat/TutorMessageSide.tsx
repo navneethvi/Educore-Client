@@ -1,5 +1,5 @@
-import { useRef, useEffect } from "react";
-import React, { useState } from "react";
+import { useRef, useEffect, useState } from "react";
+import React from "react";
 import EmojiEmotionsOutlinedIcon from "@mui/icons-material/EmojiEmotionsOutlined";
 import Picker from "emoji-picker-react";
 import ReceiverMessageBox from "./RecieverMessageBox";
@@ -9,199 +9,261 @@ import SendIcon from "@mui/icons-material/Send";
 import { RootState } from "../../store/store";
 import { useSelector } from "react-redux";
 import { BASE_URL } from "../../utils/configs";
-import { ExistingChat } from "../common/contents/student/Messages";
 import socket from "../../utils/socket";
-
+import { ExistingChat } from "../common/contents/tutor/Messages";
 interface MessageSideProps {
-  existingChats?: { _id: string; name: string; image: string }[]; // Example shape
+  existingChats?: { _id: string; name: string; image: string }[];
   setExistingChats?: React.Dispatch<React.SetStateAction<ExistingChat[]>>;
   selectedStudent?: { name: string; image: string; _id: string } | null;
 }
+
 const MessageSide: React.FC<MessageSideProps> = ({
   existingChats = [],
   setExistingChats,
   selectedStudent,
 }) => {
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<{ text: string; sender: string }[]>(
-    []
-  );
+  const [messages, setMessages] = useState<
+    {
+      id: string;
+      messageBy: any;
+      content: string;
+      createdAt: string | number | Date;
+      text: string;
+      sender: string;
+    }[]
+  >([]);
+  const [chatRoomId, setChatRoomId] = useState("");
   const [chatId, setChatId] = useState("");
   const [showPicker, setShowPicker] = useState(false);
+  const [activeUsers, setActiveUsers] = useState<string[]>([]);
+  // const [isTyping, setIsTyping] = useState(false);
 
   const { tutorToken, tutorData } = useSelector(
     (state: RootState) => state.tutor
   );
-
   const messageEndRef = useRef<null | HTMLDivElement>(null);
+  const pickerRef = useRef<HTMLDivElement | null>(null);
 
-useEffect(() => {
-  console.log("selectedStudent=====>", selectedStudent);
+  // console.log("existingCat=====?",existingChats);
+  console.log("active userssss=?", activeUsers);
 
-  if (selectedStudent) {
-    const chatId = [tutorData?._id, selectedStudent?._id]
-      .filter(Boolean) // Ensure no undefined values
-      .sort() // Alphabetical order for consistency
-      .join("_"); // Join with separator
+  useEffect(() => {
+    if (selectedStudent) {
+      const generatedChatId = [tutorData?._id, selectedStudent?._id]
+        .filter(Boolean)
+        .sort()
+        .join("_");
 
-    console.log("Generated chatId (Tutor Side):", chatId);
+      setChatId(generatedChatId);
+      socket.emit("join-room", generatedChatId);
 
-    socket.emit("join-room", chatId);
-
-    socket.on("receive-message", (message: any) => {
-      setMessages((prevMessages) => [...prevMessages, message]);
-    });
-  }
-
-  return () => {
-    socket.off("receive-message");
-    console.log("Socket event unsubscribed (Tutor Side)");
-  };
-}, [ selectedStudent, tutorData?._id]);
-
-
-useEffect(() => {
-    if (selectedStudent) {   
-      const chatId = [tutorData?._id, selectedStudent?._id]
-        .filter(Boolean) // Ensure no undefined values
-        .sort() // Alphabetical order for consistency
-        .join("_"); // Join with separator
-  
-      console.log("Generated chatId (Tutor Side):", chatId);
-      setChatId(chatId);
-  
-      socket.emit("join-room", chatId);
-  
       const fetchChatHistory = async () => {
         try {
-            const response = await fetch(`${BASE_URL}/chat/messages`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json", // Ensure the content type is set to JSON
-                  Authorization: `Bearer ${tutorToken}`, // Include the tutor token for authorization
-                },
-                body: JSON.stringify({tutorId: tutorData?._id, studentId: selectedStudent?._id }), // Pass chatId as the request body
-              });
-              
-  
+          const response = await fetch(`${BASE_URL}/chat/messages`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${tutorToken}`,
+            },
+            body: JSON.stringify({
+              tutorId: tutorData?._id,
+              studentId: selectedStudent?._id,
+            }),
+          });
+
           if (response.ok) {
             const data = await response.json();
-            console.log("Chat history:", data);
-            setMessages(data.messages || []); // Set fetched messages
+            console.log("response of fetch hostriy==>", data);
+            setChatRoomId(data.messages.chatRoom._id);
+            console.log("messages==>", data.messages.messages);
+
+            setMessages(data.messages.messages || []);
           } else {
-            console.error("Failed to fetch chat history:", await response.text());
-            setMessages([]); // Clear messages on error
+            console.error(
+              "Failed to fetch chat history:",
+              await response.text()
+            );
+            setMessages([]);
           }
         } catch (error) {
           console.error("Error fetching chat history:", error);
-          setMessages([]); // Clear messages on exception
+          setMessages([]);
         }
       };
-  
-      fetchChatHistory();
-  
-      socket.on("receive-message", (message: any) => {
-        setMessages((prevMessages) => [...prevMessages, message]);
-      });
-    } else {
-      // Clear chat when no student is selected
-      setMessages([]);
-    }
-  
-    return () => {
-      socket.off("receive_message");
-      console.log("Socket event unsubscribed (Tutor Side)");
-    };
-  }, [selectedStudent, tutorData?._id, tutorToken]);
-  
-  
 
-  
+      fetchChatHistory();
+    }
+  }, [selectedStudent, tutorData?._id, tutorToken]);
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const sendMessageToChat = (chatId: string, text: string) => {
-    if (!chatId || !text.trim()) return;
+  useEffect(() => {
+    const handleUpdateActiveUsers = (users: string[]) => {
+      setActiveUsers(users);
+    };
 
-    const messagePayload = { roomId: chatId, message: text, sender: "me" };
-    socket.emit("send-message", messagePayload);
-    setMessages((prevMessages) => [...prevMessages, { text, sender: "me" }]);
+    socket.on("update-active-users", handleUpdateActiveUsers);
+
+    return () => {
+      socket.off("update-active-users", handleUpdateActiveUsers);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleReceiveMessage = (message: any) => {
+      console.log("Received message:", message);
+
+      if (!message.content || message.sender === tutorData?._id) {
+        return;
+      }
+
+      setMessages((prevMessages) => {
+        const isDuplicate = prevMessages.some(
+          (msg) =>
+            msg.createdAt === message.createdAt && msg.text === message.text
+        );
+        return isDuplicate ? prevMessages : [...prevMessages, message];
+      });
+    };
+
+    socket.off("receive-message", handleReceiveMessage);
+    socket.on("receive-message", handleReceiveMessage);
+    return () => {
+      // Cleanup to prevent memory leaks
+      socket.off("receive-message", handleReceiveMessage);
+    };
+  }, [chatId]);
+
+  const sendMessageToChat = (chatId: string, roomId: string, text: string) => {
+    if (!chatId || !text.trim() || !roomId) return;
+
+    const messagePayload = { text, sender: "me" };
+    console.log("Sending message:", {
+      roomId: chatRoomId,
+      chatId: chatId,
+      message: text,
+      sender: tutorData?._id,
+    });
+    socket.emit("send-message", {
+      roomId: chatRoomId,
+      chatId: chatId,
+      message: text,
+      sender: tutorData?._id,
+      senderType: "Tutor",
+    });
+
+    // setMessages((prevMessages) => [...prevMessages, messagePayload]);
   };
+
+  useEffect(() => {
+    if (tutorData?._id) {
+      socket.emit("user-active", tutorData._id);
+
+      return () => {
+        socket.emit("user-inactive", tutorData._id);
+      };
+    }
+  }, [tutorData?._id]);
+
+  // const handleTyping = (text: string, userId: string) => {
+  //   setMessage(text);
+  
+  //   if (!isTyping && text.trim().length > 0) {
+  //     setIsTyping(true);
+  //     socket.emit("typing", chatId, userId); // Emit typing event with userId
+  //   }
+  
+  //   if (text.trim().length === 0 && isTyping) {
+  //     setIsTyping(false);
+  //     socket.emit("stop-typing", chatId, userId); // Emit stop-typing event with userId
+  //   }
+  // };
+  
+
+  // useEffect(() => {
+  //   const handleTypingNotification = ({ roomId, userId }: { roomId: string; userId: string }) => {
+  //     if (roomId === chatId && userId !== tutorData?._id as string) {
+  //       setIsTyping(true);
+  //     }
+  //   };
+  
+  //   const handleStopTypingNotification = ({ roomId, userId }: { roomId: string; userId: string }) => {
+  //     if (roomId === chatId && userId !== tutorData?._id as string) {
+  //       setIsTyping(false);
+  //     }
+  //   };
+  
+  //   socket.on("show-typing", handleTypingNotification);
+  //   socket.on("hide-typing", handleStopTypingNotification);
+  
+  //   return () => {
+  //     socket.off("show-typing", handleTypingNotification);
+  //     socket.off("hide-typing", handleStopTypingNotification);
+  //   };
+  // }, [chatId, tutorData?._id]);
+  
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        pickerRef.current &&
+        !(pickerRef.current as any).contains(event.target)
+      ) {
+        setShowPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSendMessage = async () => {
-    if (message.trim()) {
-      try {
-        console.log("handleSendMessage invoked");
-  
-        if (!chatId && Array.isArray(existingChats)) {
-          // Check if chat already exists
-          const existingChat = existingChats.find(
-            (chat) => chat.name === selectedStudent?.name
-          );
+    // Trim and validate input
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage || !chatId || !chatRoomId) {
+      console.error(
+        "Invalid input: Ensure message, chatId, and chatRoomId are set."
+      );
+      return;
+    }
 
-          console.log("existingchat====>",existingChat);
-          
-  
-          if (!existingChat) {
-            const response = await fetch(`${BASE_URL}/chat/create-chat`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${tutorToken}`,
-              },
-              body: JSON.stringify({
-                chatMembers: [tutorData?._id, selectedStudent?._id],
-                chatMemberModel: ["Tutor", "Student"],
-              }),
-            });
-  
-            const data = await response.json();
-  
-            if (response.ok) {
-              console.log("New chat created:", data);
-              setChatId(data._id);
-  
-              setExistingChats?.((prevChats) => [...prevChats, data]);
-            } else {
-              throw new Error(data.message || "Failed to create chat");
-            }
-          } else {
-            setChatId(existingChat._id); 
-          }
-        }
-  
-        if (!chatId) {
-          console.error("Chat ID is undefined");
-          return;
-        }
-        console.log("chatId",chatId, "message", message);
+    // Create a new message object
+    const newMessage = {
+      id: `${Date.now()}_${Math.random()}`, // Add unique ID
+      content: trimmedMessage,
+      messageBy: { _id: tutorData?._id },
+      createdAt: new Date().toISOString(),
+      text: trimmedMessage,
+      sender: "me",
+    };
 
-        
-        
-        sendMessageToChat(chatId, message);
-  
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { text: message, sender: "me" },
-        ]);
-  
-        setMessage(""); 
-      } catch (error) {
-        console.error("Failed to create chat or send message:", error);
-      }
+    // Optimistically update the UI
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+    setMessage("");
+
+    try {
+      // Send message to the backend
+      await sendMessageToChat(chatId, chatRoomId, trimmedMessage);
+    } catch (error) {
+      console.error("Failed to send message:", error);
+
+      // Rollback optimistic UI update if sending fails
+      setMessages((prevMessages) =>
+        prevMessages.filter((msg) => msg.id !== newMessage.id)
+      );
     }
   };
-  
 
-  const onEmojiClick = (event: any, emojiObject: any) => {
-    setMessage((prevMessage) => prevMessage + emojiObject.emoji);
-    setShowPicker(false); // Close the picker after selection
+
+
+  const onEmojiClick = (emoji: any) => {
+    setMessage((prevMessage) => prevMessage + emoji.emoji);
+    setShowPicker(false);
   };
 
-  if ( !selectedStudent) {
-    // Fallback message when no tutor is selected
+  if (!selectedStudent) {
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -223,47 +285,97 @@ useEffect(() => {
 
   return (
     <div className="message-side flex-1 h-full bg-slate-200 rounded-xl flex flex-col">
-      {/* Message Header */}
-      <div className="message-header flex items-center p-4 border-b border-gray-300">
-        <div className="profile-container flex-shrink-0">
-          <img
-            src={selectedStudent?.image} // Using the tutor's image from the prop
-            alt="Profile"
-            className="w-10 h-10 rounded-full"
-          />
-        </div>
-        <div className="name ml-3 text-lg text-gray-800 font-reem-kufi">
-          { selectedStudent?.name}
-        </div>
+<div className="message-header flex items-center p-4 border-b border-gray-300">
+  <div className="profile-container flex-shrink-0">
+    <img
+      src={selectedStudent?.image}
+      alt="Profile"
+      className="w-10 h-10 rounded-full"
+    />
+  </div>
+  <div className="name ml-3 text-lg text-gray-800 font-reem-kufi">
+    <div>{selectedStudent?.name}</div>
+    {activeUsers.includes(selectedStudent?._id || "") && (
+      <div className="active-status mt-0 text-green-500 text-xs font-medium">
+        Active now
       </div>
+    )}
+  </div>
+</div>
 
-      {/* Message Screen */}
+
+
+
       <div className="message-screen flex-grow p-4 overflow-y-auto h-[400px] max-h-full">
         {messages.length > 0 ? (
-          messages.map((msg, index) =>
-            msg.sender === "me" ? (
+          messages.map((msg, index) => {
+            const isSender =
+              msg.messageBy && msg.messageBy._id === tutorData?._id;
+
+            return isSender ? (
               <SenderMessageBox
                 key={index}
-                message={msg.text}
-                timestamp="10:10"
+                message={msg.content || "No content available"}
+                timestamp={
+                  msg.createdAt
+                    ? new Date(msg.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "Unknown time"
+                }
               />
             ) : (
               <ReceiverMessageBox
                 key={index}
-                message={msg.text}
-                timestamp="10:20"
+                message={msg.content || "No content available"}
+                timestamp={
+                  msg.createdAt
+                    ? new Date(msg.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "Unknown time"
+                }
               />
-            )
-          )
+            );
+          })
         ) : (
           <div className="text-center text-gray-500">
             <p>No messages yet. Start the conversation!</p>
           </div>
         )}
+        
+       {/* {isTyping && (
+  <div className="flex items-center space-x-2">
+    <div className="flex-shrink-0">
+      <img
+        src= "https://avatars.githubusercontent.com/u/108149371?v=4"
+        alt="Receiver's profile picture"
+        className="w-6 h-6 rounded-full mr-0"
+      />
+    </div>
+    <div className="inline-flex items-center bg-gradient-to-r from-violet-500 to-blue-600 rounded-2xl px-6 py-4 mt-2">
+      <div className="flex space-x-1">
+        {[0, 1, 2].map((index) => (
+          <div
+            key={index}
+            className="w-1.5 h-1.5 bg-white rounded-full animate-bounce"
+            style={{
+              animationDelay: `${index * 0.15}s`,
+              animationDuration: "0.8s",
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+)} */}
+
+
         <div ref={messageEndRef} />
       </div>
 
-      {/* Sending Options */}
       <div className="sending-options flex items-center p-2 border-t border-gray-300 bg-slate-200 rounded-xl relative">
         <div
           className="relative flex-shrink-0 mr-2"
@@ -281,9 +393,11 @@ useEffect(() => {
         <div className="relative w-full">
           <input
             type="text"
-            id="message-input"
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              // handleTyping(e.target.value, tutorData?._id as string);
+            }}
             onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
             className="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-full h-10 focus:ring-blue-500 focus:border-blue-500 block w-full pl-4 pr-12 shadow-sm placeholder-gray-500"
             placeholder="Type a message..."

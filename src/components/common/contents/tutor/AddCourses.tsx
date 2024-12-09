@@ -31,12 +31,16 @@ import { courseValidationSchema } from "../../../../validations/courseValidation
 import { uploadFileToS3 } from "../../../../utils/s3";
 import axios from "axios";
 import { BASE_URL } from "../../../../utils/configs";
+import Compressor from "compressorjs";
+import { fetchAllCategories } from "../../../../redux/admin/adminActions";
 
 const AddCourses: React.FC = () => {
   const [thumbnail, setThumbnail] = useState<string>("");
   const [croppedThumbnail, setCroppedThumbnail] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [loading2, setLoading] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
+
 
   const cropperRef = useRef<ReactCropperElement>(null);
 
@@ -60,6 +64,19 @@ const AddCourses: React.FC = () => {
       reader.readAsDataURL(file);
     }
   };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await dispatch(fetchAllCategories()).unwrap();
+        setCategories(response);
+      } catch (err: any) {
+        console.error("Error fetching categories:", err.message);
+      }
+    };
+
+    fetchCategories();
+  }, [dispatch]);
 
   const handleCrop = () => {
     const cropper = cropperRef.current?.cropper;
@@ -174,10 +191,30 @@ const AddCourses: React.FC = () => {
       console.log("values.thumbnail==========>", values.thumbnail);
       console.log("thumbnail==========>", thumbnail);
 
+      const compressImage = (file: File, quality = 0.3): Promise<File> => {
+        return new Promise((resolve, reject) => {
+          new Compressor(file, {
+            quality, // Lower quality for higher compression
+            convertSize: 500000, // Convert files larger than 500KB to JPEG
+            success: (compressedFile) => {
+              console.log("Compression successful:");
+              console.log("Original size:", file.size);
+              console.log("Compressed size:", compressedFile.size);
+              resolve(compressedFile as File);
+            },
+            error: (err) => {
+              console.error("Compression failed:", err);
+              reject(err);
+            },
+          });
+        });
+      };
+
       if (croppedThumbnail) {
         const thumbnailBlob = dataURLtoBlob(croppedThumbnail);
         const thumbnailFile = blobToFile(thumbnailBlob, "thumbnail.png");
-        const thumbnailFilename = await uploadLessonFile(thumbnailFile);
+        const compressedThumbnail = await compressImage(thumbnailFile, 0.3);
+        const thumbnailFilename = await uploadLessonFile(compressedThumbnail);
         formData.append("thumbnail", thumbnailFilename);
       }
 
@@ -297,9 +334,11 @@ const AddCourses: React.FC = () => {
                     <FormControl fullWidth sx={{ mb: 3 }}>
                       <InputLabel>Category</InputLabel>
                       <Field name="category" as={Select} label="Category">
-                        <MenuItem value="programming">Programming</MenuItem>
-                        <MenuItem value="design">Design</MenuItem>
-                        <MenuItem value="marketing">Marketing</MenuItem>
+                        {categories.map((category) => (
+                          <MenuItem key={category._id} value={category.name}>
+                            {category.name}
+                          </MenuItem>
+                        ))}
                       </Field>
                     </FormControl>
                     <FormControl fullWidth sx={{ mb: 3 }}>

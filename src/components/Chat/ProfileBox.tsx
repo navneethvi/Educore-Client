@@ -2,14 +2,16 @@ import React from "react";
 
 interface ProfileBoxProps {
   isSelected?: boolean; // Optional prop to determine if this box is selected
-  tutorInfo?: { name: string; image: string; _id: string }; // Optional tutorInfo prop
+  tutorInfo?: { name: string; image: string; _id: string}; // Optional tutorInfo prop
   studentInfo?: { name: string; image: string; _id: string }; // Optional studentInfo prop
+  lastMessage?: string
 }
 
 const ProfileBox: React.FC<ProfileBoxProps> = ({
   isSelected,
   tutorInfo,
   studentInfo,
+  lastMessage
 }) => {
   // Determine whether to use tutorInfo or studentInfo
   const info = tutorInfo || studentInfo;
@@ -42,16 +44,10 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({
       <div className="flex-grow px-2 text-xs sm:text-sm">
         <div className="name text-gray-900 font-reem-kufi">{info.name}</div>
         <div className="last-message text-gray-500 text-xs truncate">
-          Last message preview here...
+          {lastMessage}
         </div>
       </div>
 
-      {/* Unread Messages */}
-      <div className="unreaded-messages relative">
-        <div className="bg-indigo-500 text-white text-xs font-normal rounded-full w-5 h-5 flex items-center justify-center absolute top-0 right-0">
-          3 {/* Example unread messages count */}
-        </div>
-      </div>
     </div>
   );
 };

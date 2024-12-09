@@ -12,6 +12,7 @@ import {
   studentGoogleSignin,
   studentLogout,
 } from "./studentActions";
+import { ExistingChat } from "../../components/common/contents/student/Messages";
 
 interface Lesson {
   title: string;
@@ -51,6 +52,7 @@ interface StudentState {
   otpVerifyLoading: boolean;
   otpVerifyError: string;
   allCourses: Course[];  
+  existingChats: ExistingChat[]
 }
 
 const initialState: StudentState = {
@@ -67,6 +69,7 @@ const initialState: StudentState = {
   otpVerifyLoading: false,
   otpVerifyError: "",
   allCourses: [],
+  existingChats: []
 };
 
 const studentSlice = createSlice({
@@ -93,6 +96,9 @@ const studentSlice = createSlice({
       state.loading = false;
       state.message = "";
     },
+    setExistingChats(state, action: PayloadAction<ExistingChat[]>) {
+      state.existingChats = action.payload;
+    }
     // setStudentData: (
     //   state,
     //   action: PayloadAction<{ data: any; token: string | null }>
@@ -286,6 +292,6 @@ const studentSlice = createSlice({
   },
 });
 
-export const { resetActions, studentLogoutLocal, setAccessToken } = studentSlice.actions;
+export const { resetActions, studentLogoutLocal, setAccessToken, setExistingChats } = studentSlice.actions;
 
 export default studentSlice.reducer;

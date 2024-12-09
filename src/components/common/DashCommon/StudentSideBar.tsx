@@ -27,7 +27,7 @@ const StudentSideBar: React.FC<SideBarProps> = ({ isCollapsed, onToggle }) => {
     { to: "/dashboard", icon: <DashboardIcon />, label: "Dashboard" },
     { to: "/courses", icon: <LibraryBooksIcon />, label: "Courses" },
     { to: "/messages", icon: <MessageIcon />, label: "Messages" },
-    { to: "/webinar", icon: <LiveTvIcon />, label: "Webinars" },
+    // { to: "/webinar", icon: <LiveTvIcon />, label: "Webinars" },
     { to: "/store", icon: <AddCardIcon />, label: "Store" },
   ];
 

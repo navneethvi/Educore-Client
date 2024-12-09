@@ -212,134 +212,171 @@ const Courses: React.FC = () => {
   };
 
   return (
-    <>
-      <style>{shimmerStyle}</style>
-      <div className="heading mb-6 px-4">
-        <h1 className="text-3xl font-semibold text-gray-800">Courses</h1>
-      </div>
-      <div className="flex justify-end mb-6 px-4">
-        <button
-          onClick={() => setShowApproved(!showApproved)}
-          className={`px-4 py-2 rounded text-white ${
-            showApproved
-              ? "bg-gray-800 hover:bg-gray-700"
-              : "bg-gray-600 hover:bg-gray-500"
-          }`}
-        >
-          {showApproved ? "Show Pending Courses" : "Show Approved Courses"}
-        </button>
-      </div>
+<>
+  <style>
+    {`
+      /* Custom Scrollbar for the TableContainer */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 10px; /* Adjust width */
+      }
 
-      {loading ? (
-        <div className="flex justify-center items-center h-[300px]">
-          <CircularProgress />
-        </div>
-      ) : (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-        >
-          <TableContainer
-            component={Paper}
-            style={{ maxHeight: "500px", overflowY: "auto" }}
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #888; /* Color of the scrollbar */
+        border-radius: 5px; /* Rounded edges */
+        border: 2px solid #fff; /* Space between the thumb and the track */
+      }
+
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background-color: #555; /* Hover effect for the thumb */
+      }
+
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background-color: #f1f1f1; /* Track color */
+        border-radius: 5px; /* Rounded edges */
+      }
+
+       .table-no-shadow {
+        box-shadow: none !important;
+      }
+    `}
+  </style>
+
+  <div className="heading mb-6 px-4">
+    <h1 className="text-2xl font-semibold text-gray-800">Courses</h1>
+  </div>
+  <div className="flex justify-end mb-6 px-4">
+    <button
+      onClick={() => setShowApproved(!showApproved)}
+      className={`px-4 py-2 rounded text-white ${
+        showApproved
+          ? "bg-gray-800 hover:bg-gray-700"
+          : "bg-gray-600 hover:bg-gray-500"
+      }`}
+    >
+      {showApproved ? "Show Pending Courses" : "Show Approved Courses"}
+    </button>
+  </div>
+
+  {loading ? (
+    <div className="flex justify-center items-center h-[300px]">
+      <CircularProgress />
+    </div>
+  ) : (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+    >
+      <TableContainer
+        component={Paper}
+        style={{ maxHeight: "500px", overflowY: "auto" }}
+        className="custom-scrollbar table-no-shad"
+      >
+        <Table aria-label="courses table">
+          <TableHead
+            style={{
+              position: "sticky",
+              top: 0,
+              zIndex: 1, // Ensures the header stays on top
+              backgroundColor: "#fff", // Adds a background color to avoid transparency while scrolling
+            }}
           >
-            <Table aria-label="courses table">
-              <TableHead>
-                <TableRow>
-                  <StyledTableCell align="left">Image</StyledTableCell>
-                  <StyledTableCell align="center">Title</StyledTableCell>
-                  <StyledTableCell align="center">Category</StyledTableCell>
-                  <StyledTableCell align="center">Price</StyledTableCell>
-                  <StyledTableCell align="center">Tutor</StyledTableCell>
+            <TableRow>
+              <StyledTableCell align="left">Image</StyledTableCell>
+              <StyledTableCell align="center">Title</StyledTableCell>
+              <StyledTableCell align="center">Category</StyledTableCell>
+              <StyledTableCell align="center">Price</StyledTableCell>
+              <StyledTableCell align="center">Tutor</StyledTableCell>
+              {showApproved && (
+                <StyledTableCell align="center">
+                  Enrollments
+                </StyledTableCell>
+              )}
+              <StyledTableCell align="center">Approval</StyledTableCell>
+              <StyledTableCell align="center">Actions</StyledTableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {courses && courses.length > 0 ? (
+              courses.map((course) => (
+                <StyledTableRow key={course._id}>
+                  <StyledTableCell align="left">
+                    <div className="relative shimmer-wrapper">
+                      {imageLoadingMap.get(course._id) && (
+                        <div className="shimmer"></div>
+                      )}
+                      <img
+                        src={thumbnails[course._id] || ""}
+                        alt={course.title}
+                        className={`image transition-opacity duration-500 ease-in-out ${
+                          imageLoadingMap.get(course._id)
+                            ? "opacity-0"
+                            : "opacity-100"
+                        }`}
+                        onLoad={() => handleImageLoad(course._id)}
+                        onError={() => handleImageLoad(course._id)}
+                      />
+                    </div>
+                  </StyledTableCell>
+
+                  <StyledTableCell align="center">
+                    {course.title}
+                  </StyledTableCell>
+                  <StyledTableCell align="center">
+                    {course.category}
+                  </StyledTableCell>
+                  <StyledTableCell align="center">
+                    {course.price}
+                  </StyledTableCell>
+                  <StyledTableCell align="center">
+                    {course.tutor_data[0].name}
+                  </StyledTableCell>
                   {showApproved && (
                     <StyledTableCell align="center">
-                      Enrollments
+                      {course.enrollments}
                     </StyledTableCell>
                   )}
-                  <StyledTableCell align="center">Approval</StyledTableCell>
-                  <StyledTableCell align="center">Actions</StyledTableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {courses && courses.length > 0 ? (
-                  courses.map((course) => (
-                    <StyledTableRow key={course._id}>
-                      <StyledTableCell align="left">
-                        <div className="relative shimmer-wrapper">
-                          {imageLoadingMap.get(course._id) && (
-                            <div className="shimmer"></div>
-                          )}
-                          <img
-                            src={thumbnails[course._id] || ""}
-                            alt={course.title}
-                            className={`image transition-opacity duration-500 ease-in-out ${
-                              imageLoadingMap.get(course._id)
-                                ? "opacity-0"
-                                : "opacity-100"
-                            }`}
-                            onLoad={() => handleImageLoad(course._id)}
-                            onError={() => handleImageLoad(course._id)}
-                          />
-                        </div>
-                      </StyledTableCell>
+                  <StyledTableCell align="center">
+                    {course.is_approved ? (
+                      <Alert severity="success">Approved</Alert>
+                    ) : (
+                      <Alert severity="warning">Pending</Alert>
+                    )}
+                  </StyledTableCell>
+                  <StyledTableCell align="center">
+                    <button
+                      onClick={() => handleCourseClick(course._id)}
+                      className="bg-purple-600 text-white text-xs px-6 py-2 mr-2 rounded-full"
+                    >
+                      View
+                    </button>
+                    {!course.is_approved && (
+                      <button
+                        onClick={() => handleApprove(course._id)}
+                        className="bg-green-600 text-white text-xs px-6 py-2 ml-2 rounded-full"
+                      >
+                        Approve
+                      </button>
+                    )}
+                  </StyledTableCell>
+                </StyledTableRow>
+              ))
+            ) : (
+              <StyledTableRow>
+                <StyledTableCell colSpan={8} align="center">
+                  <Alert severity="info">No courses found.</Alert>
+                </StyledTableCell>
+              </StyledTableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </motion.div>
+  )}
+</>
 
-                      <StyledTableCell align="center">
-                        {course.title}
-                      </StyledTableCell>
-                      <StyledTableCell align="center">
-                        {course.category}
-                      </StyledTableCell>
-                      <StyledTableCell align="center">
-                        {course.price}
-                      </StyledTableCell>
-                      <StyledTableCell align="center">
-                        {course.tutor_data[0].name}
-                      </StyledTableCell>
-                      {showApproved && (
-                        <StyledTableCell align="center">
-                          {course.enrollments}
-                        </StyledTableCell>
-                      )}
-                      <StyledTableCell align="center">
-                        {course.is_approved ? (
-                          <Alert severity="success">Approved</Alert>
-                        ) : (
-                          <Alert severity="warning">Pending</Alert>
-                        )}
-                      </StyledTableCell>
-                      <StyledTableCell align="center">
-                        <button
-                          onClick={() => handleCourseClick(course._id)}
-                          className="bg-purple-600 text-white text-xs px-6 py-2 mr-2 rounded-full"
-                        >
-                          View
-                        </button>
-                        {!course.is_approved && (
-                          <button
-                            onClick={() => handleApprove(course._id)}
-                            className="bg-green-600 text-white text-xs px-6 py-2 ml-2 rounded-full"
-                          >
-                            Approve
-                          </button>
-                        )}
-                      </StyledTableCell>
-                    </StyledTableRow>
-                  ))
-                ) : (
-                  <StyledTableRow>
-                    <StyledTableCell colSpan={8} align="center">
-                      <Alert severity="info">No courses found.</Alert>
-                    </StyledTableCell>
-                  </StyledTableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </motion.div>
-      )}
-    </>
+  
   );
 };
 

@@ -7,6 +7,8 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { BASE_URL } from "../../../../utils/configs";
 import ChatIcon from "@mui/icons-material/Chat";
+import CourseRatingModal from "../../../../Modal/AddReviewCourseModal";
+import Swal from "sweetalert2";
 
 const shimmerStyle = `
   @keyframes shimmer {
@@ -40,8 +42,12 @@ const EnrolledCourseDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [imageLoading, setImageLoading] = useState(true);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const dispatch: AppDispatch = useDispatch();
   const { adminToken } = useSelector((state: RootState) => state.admin);
+
+  const { studentToken } = useSelector((state: RootState) => state.student);
 
   const navigate = useNavigate();
 
@@ -56,7 +62,7 @@ const EnrolledCourseDetails: React.FC = () => {
       if (response.payload) {
         const courseData = response.payload;
         setCourse(courseData);
-
+        console.log(courseData); // Log the course data to check
         if (courseData.thumbnail) {
           const url = await fetchThumbnailUrl(courseData.thumbnail);
           setThumbnailUrl(url);
@@ -88,9 +94,50 @@ const EnrolledCourseDetails: React.FC = () => {
     }
   };
 
-  const handleClickChat = async ()=>{
+  const handleClickChat = async () => {
     navigate("/messages", { state: { tutorId: course.tutor_id } });
-  }
+  };
+
+  const handleSubmitReview = async (rating: number, review: string) => {
+    if (!courseId) {
+      console.error("Course ID is not available");
+      return;
+    }
+  
+    console.log(`Rating: ${rating}, Review: ${review}`);
+    const tutorId = course.tutor_id;
+    
+    try {
+      const response = await fetch(`${BASE_URL}/course/add-review`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${studentToken}`,
+        },
+        body: JSON.stringify({
+          courseId,
+          rating,
+          review,
+          tutorId,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to add review: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log("Review added successfully:", data);
+      Swal.fire({
+        title: 'Success!',
+        text: 'Your review has been added successfully.',
+        icon: 'success',
+        confirmButtonText: 'Okay',
+      });
+    } catch (error) {
+      console.error("Error adding review:", error);
+    }
+  };
+  
 
   if (loading) {
     return (
@@ -176,28 +223,45 @@ const EnrolledCourseDetails: React.FC = () => {
         </div>
 
         <div className="p-4 bg-white shadow-md rounded-md flex justify-between items-center space-x-4">
-  {/* Tutor Image */}
-  {loading ? (
-    <Skeleton circle={true} height={64} width={64} />
-  ) : (
-    <img
-      src={course?.tutor_image || "https://via.placeholder.com/64"}
-      alt={course?.tutor_name || "Tutor"}
-      className="w-12 h-12 object-cover rounded-full" // Adjusted for better responsive design
-    />
-  )}
+          {/* Tutor Image */}
+          {loading ? (
+            <Skeleton circle={true} height={64} width={64} />
+          ) : (
+            <img
+              src={course?.tutor_image || "https://via.placeholder.com/64"}
+              alt={course?.tutor_name || "Tutor"}
+              className="w-12 h-12 object-cover rounded-full" // Adjusted for better responsive design
+            />
+          )}
 
-  {/* Tutor Name */}
-  <p className="text-xl font-semibold flex-grow text-left">
-    {course?.tutor_name || <Skeleton width={100} />}
-  </p>
+          {/* Tutor Name */}
+          <p className="text-xl font-semibold flex-grow text-left">
+            {course?.tutor_name || <Skeleton width={100} />}
+          </p>
 
-  {/* Chat Icon */}
-  <div className="border border-gray-300 p-2 rounded-full flex justify-center items-center cursor-pointer" onClick={handleClickChat}>
-    <ChatIcon className="text-gray-600" />
-  </div>
-</div>
+          {/* Chat Icon */}
+          <div
+            className="border border-gray-300 p-2 rounded-full flex justify-center items-center cursor-pointer"
+            onClick={handleClickChat}
+          >
+            <ChatIcon className="text-gray-600" />
+          </div>
+        </div>
 
+        <div className="add-rating flex justify-center items-center mt-4">
+          <button
+            className="bg-purple-600 text-white text-md px-6 py-2 mr-2 rounded-full transition duration-200"
+            onClick={() => setIsModalOpen(true)}
+          >
+            Add Rating and Review
+          </button>
+          <CourseRatingModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onSubmit={handleSubmitReview}
+            courseName={course.title}
+          />
+        </div>
       </div>
     </div>
   );

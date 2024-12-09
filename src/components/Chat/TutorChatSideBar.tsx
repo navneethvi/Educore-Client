@@ -4,8 +4,7 @@ import SearchBar from "./SearchBar";
 import ProfileBox from "./ProfileBox";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { ExistingChat } from "../common/contents/student/Messages";
-
+import { ExistingChat } from "../common/contents/tutor/Messages";
 interface ChatSideProps {
   studentInfo?: { name: string; image: string; _id: string };
   existingChats?: ExistingChat[];

@@ -28,16 +28,22 @@ const TutorSignIn = () => {
   const { loading, error, message, success } = useSelector(
     (state: RootState) => state.tutor
   );
-
+  
   useEffect(() => {
+    // Show message when coming from another page (e.g., after successful login)
     if (location.state?.message) {
       toast.success(location.state.message);
+      // Reset location state after displaying the message
+      navigate("/tutor/signin", { replace: true });  // Use `replace: true` to avoid adding the message in history
     }
-
+  
+    // Show error if it exists
     if (error) {
       toast.error(error);
       dispatch(resetActions());
     }
+  
+    // Show success message and navigate if successful
     if (success) {
       toast.success(message);
       dispatch(resetActions());
@@ -45,11 +51,15 @@ const TutorSignIn = () => {
         state: { message: "You've successfully signed in.", email: email },
       });
     }
-
+  
+    // Cleanup state after logout or navigation to prevent lingering messages
     return () => {
       dispatch(resetActions());
     };
-  });
+  }, [error, success, message, navigate, location, dispatch, email]);
+  
+  
+  
 
   const handleSignIn = async () => {
     if (!validateEmail(email)) {
